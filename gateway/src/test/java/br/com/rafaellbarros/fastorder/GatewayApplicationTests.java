@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"eureka.client.enabled=false",
 		"spring.cloud.discovery.enabled=false"
 })
-class FastorderPlatformApplicationTests {
+class GatewayApplicationTests {
 
 	@Test
 	void contextLoads() {
