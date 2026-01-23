@@ -75,6 +75,22 @@
         }
       ],
       "realmRoles": ["admin", "user"]
+    },
+    {
+      "username": "testuser",
+      "email": "testuser@fastorder.local",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
     }
   ]
 }

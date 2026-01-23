@@ -2,9 +2,11 @@ package br.com.rafaellbarros.fastorder.api.gateway.admin.controller;
 
 import br.com.rafaellbarros.fastorder.api.gateway.admin.service.RouteAdminService;
 import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteRequestDTO;
+import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -24,4 +26,11 @@ public class RouteAdminController {
     public Mono<Void> delete(@PathVariable String id) {
         return service.delete(id);
     }
+
+
+    @GetMapping
+    public Flux<RouteResponseDTO> findAll() {
+        return service.findAll();
+    }
 }
+

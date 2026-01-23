@@ -1,13 +1,16 @@
 package br.com.rafaellbarros.fastorder.api.gateway.admin.service;
 
 import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteRequestDTO;
+import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -18,6 +21,7 @@ import java.util.List;
 public class RouteAdminService {
 
     private final RouteDefinitionWriter writer;
+    private final RouteDefinitionLocator locator; // 👈 NOVO
     private final ApplicationEventPublisher publisher;
 
     public Mono<Void> create(RouteRequestDTO dto) {
@@ -41,7 +45,27 @@ public class RouteAdminService {
                 .then(Mono.fromRunnable(this::refreshRoutes));
     }
 
+    public Flux<RouteResponseDTO> findAll() {
+        return locator.getRouteDefinitions()
+                .map(this::toResponse);
+    }
+
+    private RouteResponseDTO toResponse(RouteDefinition route) {
+        String path = route.getPredicates().stream()
+                .filter(p -> "Path".equals(p.getName()))
+                .map(p -> p.getArgs().get("pattern"))
+                .findFirst()
+                .orElse("N/A");
+
+        return new RouteResponseDTO(
+                route.getId(),
+                route.getUri().toString(),
+                path
+        );
+    }
+
     private void refreshRoutes() {
         publisher.publishEvent(new RefreshRoutesEvent(this));
     }
 }
+

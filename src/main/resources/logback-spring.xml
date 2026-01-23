@@ -1,0 +1,30 @@
+<configuration>
+
+    <conversionRule conversionWord="clr"
+                    converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+
+    <appender name="COLORED_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15thread]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %msg%n%wEx</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <springProfile name="local,dev">
+        <root level="INFO">
+            <appender-ref ref="COLORED_CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="cloud,prod">
+        <root level="INFO">
+            <appender-ref ref="JSON"/>
+        </root>
+    </springProfile>
+
+</configuration>
