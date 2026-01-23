@@ -1,7 +1,7 @@
 package br.com.rafaellbarros.fastorder.api.gateway.admin.service;
 
-import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteRequestDTO;
-import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteResponseDTO;
+import br.com.rafaellbarros.fastorder.api.gateway.dto.request.RouteRequestDTO;
+import br.com.rafaellbarros.fastorder.api.gateway.dto.response.RouteResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;

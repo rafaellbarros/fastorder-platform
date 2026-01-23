@@ -1,8 +1,8 @@
 package br.com.rafaellbarros.fastorder.api.gateway.admin.controller;
 
 import br.com.rafaellbarros.fastorder.api.gateway.admin.service.RouteAdminService;
-import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteRequestDTO;
-import br.com.rafaellbarros.fastorder.api.gateway.dto.RouteResponseDTO;
+import br.com.rafaellbarros.fastorder.api.gateway.dto.request.RouteRequestDTO;
+import br.com.rafaellbarros.fastorder.api.gateway.dto.response.RouteResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

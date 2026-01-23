@@ -1,4 +1,4 @@
-package br.com.rafaellbarros.fastorder.api.gateway.dto;
+package br.com.rafaellbarros.fastorder.api.gateway.dto.request;
 
 import lombok.Data;
 

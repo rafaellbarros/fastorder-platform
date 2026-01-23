@@ -6,17 +6,11 @@ spring:
     name: gateway
 
   profiles:
-    default: local   # sempre sobe em local por padrão
+    default: local
 
   output:
     ansi:
       enabled: ALWAYS
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8085/realms/fastorder
 
 management:
   endpoints:
@@ -26,3 +20,8 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG

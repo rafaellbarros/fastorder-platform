@@ -3,19 +3,20 @@ spring:
     activate:
       on-profile: local
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8085/realms/fastorder
+
   cloud:
     gateway:
       server:
         webflux:
           discovery:
             locator:
-              enabled: false
+              enabled: false  # sem service discovery local
 
 eureka:
   client:
-    enabled: false
-
-logging:
-  level:
-    root: INFO
-    org.springframework.cloud.gateway: DEBUG
+    enabled: false  # desabilita Eureka local
