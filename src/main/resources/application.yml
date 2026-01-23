@@ -4,28 +4,19 @@ server:
 spring:
   application:
     name: fastorder-platform
+
+  profiles:
+    default: local   # sempre sobe em local por padrão
+
   output:
     ansi:
       enabled: ALWAYS
-
-  cloud:
-    gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
 
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8085/realms/fastorder
-
-eureka:
-  client:
-    enabled: false
 
 management:
   endpoints:

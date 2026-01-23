@@ -1,0 +1,21 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG

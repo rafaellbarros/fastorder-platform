@@ -23,20 +23,19 @@ public class KeycloakJwtAuthenticationConverter
 
         Collection<GrantedAuthority> authorities = new ArrayList<>();
 
-        Map<String, Object> realmAccess =
-            jwt.getClaim("realm_access");
+        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
 
-        if (realmAccess != null) {
-            List<String> roles =
-                (List<String>) realmAccess.get("roles");
+        if (realmAccess != null && realmAccess.get("roles") != null) {
+            List<String> roles = (List<String>) realmAccess.get("roles");
 
             roles.forEach(role ->
-                authorities.add(
-                    new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())
-                )
+                    authorities.add(
+                            new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())
+                    )
             );
         }
 
         return Mono.just(new JwtAuthenticationToken(jwt, authorities));
     }
 }
+

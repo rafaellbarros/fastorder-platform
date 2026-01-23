@@ -1,6 +1,7 @@
 package br.com.rafaellbarros.fastorder.api.gateway.config;
 
 import br.com.rafaellbarros.fastorder.api.gateway.security.KeycloakJwtAuthenticationConverter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
@@ -11,7 +12,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final KeycloakJwtAuthenticationConverter converter;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
@@ -28,10 +32,15 @@ public class SecurityConfig {
                         .pathMatchers("/admin/**").hasRole("ADMIN")
                         .anyExchange().authenticated()
                 )
-                .oauth2ResourceServer(ServerHttpSecurity.OAuth2ResourceServerSpec::jwt)
+                .oauth2ResourceServer(oauth -> oauth
+                        .jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(converter)
+                        )
+                )
                 .build();
     }
 }
+
 
 
 

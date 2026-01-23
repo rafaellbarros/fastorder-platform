@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: cloud
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+
+eureka:
+  client:
+    enabled: true
+  instance:
+    prefer-ip-address: true
