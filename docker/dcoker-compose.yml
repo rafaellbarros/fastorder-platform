@@ -1,17 +1,54 @@
-# docker-compose.yml
 version: '3.8'
+
 services:
   postgres:
     image: postgres:15-alpine
     container_name: fastorder-db
     environment:
-      POSTGRES_DB: fastorder_db
+      POSTGRES_DB: fastorder
       POSTGRES_USER: fastorder
-      POSTGRES_PASSWORD: fastorder
+      POSTGRES_PASSWORD: fastorder123
     ports:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  #    - ./configs/postgres/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - fastorder-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U fastorder" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: fastorder-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/fastorder
+      KC_DB_USERNAME: fastorder
+      KC_DB_PASSWORD: fastorder123
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./configs/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    networks:
+      - fastorder-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  fastorder-net:
+    driver: bridge
 
 volumes:
   postgres_data:

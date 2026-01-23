@@ -1,0 +1,48 @@
+{
+  "realm": "fastorder",
+  "enabled": true,
+
+  "roles": {
+    "realm": [
+      { "name": "ROLE_ADMIN", "description": "Administrador do sistema" },
+      { "name": "ROLE_USER", "description": "Usuário padrão" }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "fastorder-gateway",
+      "enabled": true,
+      "protocol": "openid-connect",
+
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+
+      "defaultClientScopes": ["profile", "email"],
+      "optionalClientScopes": ["offline_access"]
+    }
+  ],
+
+  "users": [
+    {
+      "username": "rafael",
+      "email": "rafaelbarros.df@gmail.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Rafael",
+      "lastName": "Barros",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ROLE_USER", "ROLE_ADMIN"]
+    }
+  ]
+}

@@ -4,9 +4,6 @@ server:
 spring:
   application:
     name: fastorder-platform
-  output:
-    ansi:
-      enabled: ALWAYS
 
   cloud:
     gateway:
@@ -33,5 +30,3 @@ management:
     web:
       exposure:
         include: health,info,gateway
-
-
