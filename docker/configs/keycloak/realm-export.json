@@ -4,8 +4,8 @@
 
   "roles": {
     "realm": [
-      { "name": "ROLE_ADMIN", "description": "Administrador do sistema" },
-      { "name": "ROLE_USER", "description": "Usuário padrão" }
+      { "name": "admin", "description": "Administrador do sistema" },
+      { "name": "user", "description": "Usuário padrão" }
     ]
   },
 
@@ -42,7 +42,7 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["ROLE_USER", "ROLE_ADMIN"]
+      "realmRoles": ["admin", "user"]
     }
   ]
 }

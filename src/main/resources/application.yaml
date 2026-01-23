@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: fastorder-platform
+  output:
+    ansi:
+      enabled: ALWAYS
 
   cloud:
     gateway:
@@ -22,11 +25,13 @@ spring:
 
 eureka:
   client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
+    enabled: false
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
