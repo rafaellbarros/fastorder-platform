@@ -1,0 +1,9 @@
+spring:
+  config:
+    activate:
+      on-profile: cloud
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka

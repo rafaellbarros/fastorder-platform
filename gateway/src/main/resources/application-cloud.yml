@@ -3,6 +3,12 @@ spring:
     activate:
       on-profile: cloud
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8084/realms/fastorder
+
   cloud:
     gateway:
       server:

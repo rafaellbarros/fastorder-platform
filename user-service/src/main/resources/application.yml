@@ -1,5 +1,5 @@
 server:
-  port: 0  # porta dinâmica
+  port: 0
 
 spring:
   application:
@@ -10,8 +10,5 @@ spring:
       enabled: ALWAYS
 
 eureka:
-  client:
-    service-url:
-      defaultZone: http://discovery-server:8761/eureka
   instance:
     prefer-ip-address: true
