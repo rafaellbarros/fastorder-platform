@@ -84,6 +84,13 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
+        <!-- Logs -->
+        <dependency>
+            <groupId>br.com.rafaellbarros</groupId>
+            <artifactId>observability-starter</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
     <build>

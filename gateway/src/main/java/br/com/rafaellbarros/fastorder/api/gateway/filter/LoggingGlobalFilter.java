@@ -15,27 +15,26 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
         long start = System.currentTimeMillis();
 
-        return chain.filter(exchange)
-                .doFinally(signal -> {
-                    var status = exchange.getResponse().getStatusCode();
-                    long duration = System.currentTimeMillis() - start;
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            long time = System.currentTimeMillis() - start;
 
-                    log.info("GATEWAY {} {} -> {} ({} ms)",
-                            exchange.getRequest().getMethod(),
-                            exchange.getRequest().getURI(),
-                            status,
-                            duration);
-                });
+            log.info("GATEWAY {} {} -> {} ({} ms)",
+                    exchange.getRequest().getMethod(),
+                    exchange.getRequest().getURI(),
+                    exchange.getResponse().getStatusCode(),
+                    time
+            );
+        }));
     }
 
     @Override
     public int getOrder() {
-        return Ordered.LOWEST_PRECEDENCE;
+        return -1;
     }
 }
+
 
 
 

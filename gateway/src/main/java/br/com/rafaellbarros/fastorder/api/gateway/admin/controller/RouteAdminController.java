@@ -4,6 +4,8 @@ import br.com.rafaellbarros.fastorder.api.gateway.admin.service.RouteAdminServic
 import br.com.rafaellbarros.fastorder.api.gateway.dto.request.RouteRequestDTO;
 import br.com.rafaellbarros.fastorder.api.gateway.dto.response.RouteResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -13,6 +15,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/admin/routes")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@ConditionalOnBean(RouteDefinitionLocator.class)
 public class RouteAdminController {
 
     private final RouteAdminService service;

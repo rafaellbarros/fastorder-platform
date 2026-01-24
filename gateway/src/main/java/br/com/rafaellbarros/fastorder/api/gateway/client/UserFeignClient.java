@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
+
 @FeignClient(name = "user-service", configuration = FeignConfig.class)
 public interface UserFeignClient {
 
@@ -17,5 +19,8 @@ public interface UserFeignClient {
 
     @PostMapping("/users")
     UserResponseDTO createUser(@RequestBody CreateUserRequestDTO request);
+
+    @GetMapping("/users")
+    List<UserResponseDTO> getUsers();
 }
 

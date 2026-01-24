@@ -1,0 +1,124 @@
+# Observability Default Configuration
+# Este arquivo define as configurações padrão de observabilidade
+# As configurações podem ser sobrescritas por:
+# 1. application.yml do projeto
+# 2. Variáveis de ambiente
+# 3. Spring Cloud Config (futuro)
+
+# Configurações gerais
+observability:
+  enabled: true
+  config-source: ${OBSERVABILITY_CONFIG_SOURCE:local}
+  sampling-rate: ${OBSERVABILITY_SAMPLING_RATE:1.0}
+
+  logging:
+    structured: ${LOGGING_STRUCTURED:false}
+    pattern: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+  metrics:
+    enabled: ${METRICS_ENABLED:true}
+    include: http.server.requests,jvm,system
+
+  tracing:
+    enabled: ${TRACING_ENABLED:true}
+    baggage-fields: userId,tenantId,correlationId
+
+# Management endpoints (Actuator)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_INCLUDE:health,info,metrics}
+      base-path: /internal
+
+  tracing:
+    sampling:
+      probability: ${MANAGEMENT_TRACING_SAMPLING:1.0}
+
+  metrics:
+    export:
+      prometheus:
+        enabled: ${PROMETHEUS_ENABLED:true}
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": ${METRICS_HISTOGRAM:true}
+
+# Logging padrão
+logging:
+  pattern:
+    level: "${observability.logging.pattern}"
+  level:
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    br.com.rafaellbarros: ${LOGGING_LEVEL_APP:DEBUG}
+    org.springframework: ${LOGGING_LEVEL_SPRING:INFO}
+
+# ========= PERFIL LOCAL =========
+---
+spring.config.activate.on-profile: local,dev
+
+observability:
+  sampling-rate: 1.0
+  config-source: local
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,env
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    root: INFO
+    br.com.rafaellbarros: DEBUG
+    org.springframework.web: DEBUG
+
+# ========= PERFIL STAGE =========
+---
+spring.config.activate.on-profile: stage,homolog
+
+observability:
+  sampling-rate: 0.5
+  config-source: stage
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+  tracing:
+    sampling:
+      probability: 0.5
+
+logging:
+  level:
+    root: INFO
+    br.com.rafaellbarros: INFO
+
+# ========= PERFIL PRODUÇÃO =========
+---
+spring.config.activate.on-profile: prod,cloud
+
+observability:
+  sampling-rate: 0.1
+  config-source: ${CONFIG_SERVER:prod}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+      base-path: /monitoring
+
+  tracing:
+    sampling:
+      probability: 0.1
+
+logging:
+  level:
+    root: WARN
+    br.com.rafaellbarros: INFO

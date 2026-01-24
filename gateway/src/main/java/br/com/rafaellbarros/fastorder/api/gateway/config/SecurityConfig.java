@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 
 @RequiredArgsConstructor
 @Configuration
@@ -26,28 +27,17 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
 
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(
-                                exceptionHandlers.authenticationEntryPoint())
-                        .accessDeniedHandler(
-                                exceptionHandlers.accessDeniedHandler())
+                        .authenticationEntryPoint(exceptionHandlers.authenticationEntryPoint())
+                        .accessDeniedHandler(exceptionHandlers.accessDeniedHandler())
                 )
-
                 .authorizeExchange(ex -> ex
-                        .pathMatchers(
-                                "/actuator/health",
-                                "/actuator/health/**",
-                                "/actuator/info"
-                        ).permitAll()
-                        .pathMatchers("/actuator/**").hasRole("ADMIN")
-                        .pathMatchers("/admin/**").hasRole("ADMIN")
+                        .matchers(new PathPatternParserServerWebExchangeMatcher("/actuator/**")).permitAll()
+                        .pathMatchers("/*/actuator/**").permitAll()
                         .anyExchange().authenticated()
                 )
-
-                .oauth2ResourceServer(oauth -> oauth
-                        .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtConverter)
-                        )
-                )
+                .oauth2ResourceServer(oauth -> oauth.jwt(jwt ->
+                        jwt.jwtAuthenticationConverter(jwtConverter)
+                ))
                 .build();
     }
 }

@@ -6,6 +6,8 @@ import br.com.rafaellbarros.fastorder.api.gateway.dto.response.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserGatewayService {
@@ -18,5 +20,9 @@ public class UserGatewayService {
 
     public UserResponseDTO createUser(CreateUserRequestDTO request) {
         return userFeignClient.createUser(request);
+    }
+
+    public List<UserResponseDTO> getUsers() {
+        return userFeignClient.getUsers();
     }
 }

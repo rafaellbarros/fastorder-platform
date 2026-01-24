@@ -1,45 +1,39 @@
 package br.com.rafaellbarros.fastorder.api.gateway.security;
 
+import br.com.rafaellbarros.fastorder.api.gateway.dto.response.ApiErrorResponseDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class SecurityExceptionHandlers {
+
+    private final ObjectMapper objectMapper;
 
     public ServerAuthenticationEntryPoint authenticationEntryPoint() {
         return (exchange, ex) -> {
 
             log.warn("401 Unauthorized: {}", ex.getMessage());
 
-            var response = exchange.getResponse();
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-            var body = """
-                    {
-                      "error": "UNAUTHORIZED",
-                      "message": "Token ausente, inválido ou expirado",
-                      "path": "%s",
-                      "timestamp": "%s"
-                    }
-                    """.formatted(
-                        exchange.getRequest().getPath(),
-                        Instant.now()
-                    );
-
-            var buffer = response.bufferFactory()
-                    .wrap(body.getBytes(StandardCharsets.UTF_8));
-
-            return response.writeWith(Mono.just(buffer));
+            return writeErrorResponse(
+                    exchange,
+                    HttpStatus.UNAUTHORIZED,
+                    "UNAUTHORIZED",
+                    "Token ausente, inválido ou expirado"
+            );
         };
     }
 
@@ -48,26 +42,43 @@ public class SecurityExceptionHandlers {
 
             log.warn("403 Forbidden: {}", ex.getMessage());
 
-            var response = exchange.getResponse();
-            response.setStatusCode(HttpStatus.FORBIDDEN);
-            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-            var body = """
-                    {
-                      "error": "FORBIDDEN",
-                      "message": "Você não possui permissão para acessar este recurso",
-                      "path": "%s",
-                      "timestamp": "%s"
-                    }
-                    """.formatted(
-                        exchange.getRequest().getPath(),
-                        Instant.now()
-                    );
-
-            var buffer = response.bufferFactory()
-                    .wrap(body.getBytes(StandardCharsets.UTF_8));
-
-            return response.writeWith(Mono.just(buffer));
+            return writeErrorResponse(
+                    exchange,
+                    HttpStatus.FORBIDDEN,
+                    "FORBIDDEN",
+                    "Você não possui permissão para acessar este recurso"
+            );
         };
+    }
+
+    private Mono<Void> writeErrorResponse(
+            ServerWebExchange exchange,
+            HttpStatus status,
+            String error,
+            String message) {
+
+        var response = exchange.getResponse();
+        response.setStatusCode(status);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        log.info("RESPONSE: {}", response);
+
+        var body = ApiErrorResponseDTO.builder()
+                .error(error)
+                .message(message)
+                .path(exchange.getRequest().getPath().value())
+                .timestamp(Instant.now())
+                .build();
+
+        log.info("BODY: {}", body);
+
+        try {
+            byte[] bytes = objectMapper.writeValueAsBytes(body);
+            var buffer = response.bufferFactory().wrap(bytes);
+            return response.writeWith(Mono.just(buffer));
+        } catch (JsonProcessingException e) {
+            log.error("Erro ao serializar resposta de erro", e);
+            return response.setComplete();
+        }
     }
 }

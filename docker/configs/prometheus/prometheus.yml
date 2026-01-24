@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: "local"
+    cluster: "fastorder"
+
+scrape_configs:
+
+  # =========================
+  # 🌐 GATEWAY (métricas do próprio gateway)
+  # =========================
+  - job_name: "gateway"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8084"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_ label: instance
+      - source_labels: [__address__]
+        regex: "([^:]+):\\d+"
+        target_label: host
+        replacement: "$1"
+
+  # =========================
+  # 👤 USER-SERVICE VIA GATEWAY
+  # =========================
+  - job_name: "user-service"
+    metrics_path: /user-service/actuator/prometheus   # 🔥 rota do gateway
+    static_configs:
+      - targets: ["host.docker.internal:8084"]        # gateway
+    relabel_configs:
+      - target_label: application
+        replacement: USER-SERVICE
+      - target_label: instance
+        replacement: user-service
+
+  # =========================
+  # ⚡ USER-SERVICE DIRETO (fallback)
+  # =========================
+  - job_name: "user-service-direct"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8081"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: scrape_via
+        replacement: "direct"
+    # Scrape menos frequente, já que temos via gateway
+    scrape_interval: 60s
+
+  # =========================
+  # 🎯 PROMETHEUS SELF
+  # =========================
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

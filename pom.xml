@@ -24,6 +24,7 @@
 
 	<!-- ================= MÓDULOS ================= -->
 	<modules>
+		<module>observability-starter</module>
 		<module>discovery-server</module>
 		<module>gateway</module>
 		<module>user-service</module>

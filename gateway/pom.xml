@@ -65,6 +65,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>br.com.rafaellbarros</groupId>
+            <artifactId>observability-starter</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
     <build>

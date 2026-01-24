@@ -13,15 +13,20 @@ spring:
       enabled: ALWAYS
 
 management:
+
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans  # Zipkin container
+
+  tracing:
+    sampling:
+      probability: 1.0   # local; em prod usar 0.1
+
   endpoints:
     web:
       exposure:
         include: health,info,gateway,metrics,prometheus
+
   endpoint:
     health:
       show-details: when_authorized
-
-logging:
-  level:
-    root: INFO
-    org.springframework.cloud.gateway: DEBUG

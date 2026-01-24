@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/gateway/users")
 @RequiredArgsConstructor
@@ -22,5 +24,10 @@ public class GatewayUserController {
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody CreateUserRequestDTO request) {
         return ResponseEntity.ok(service.createUser(request));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserResponseDTO>> getUsers() {
+        return ResponseEntity.ok(service.getUsers());
     }
 }

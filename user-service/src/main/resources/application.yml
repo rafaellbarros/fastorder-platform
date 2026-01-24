@@ -1,14 +1,58 @@
 server:
-  port: 0
+  port: 8081
 
 spring:
   application:
     name: user-service
-
   output:
     ansi:
       enabled: ALWAYS
 
+# =========================================================
+# 🚀 EUREKA CLIENT
+# =========================================================
 eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
   instance:
     prefer-ip-address: true
+    # Força o ID a mostrar o nome e a porta real para o Eureka não se perder
+    instance-id: ${spring.application.name}:${server.port}
+    # Essas duas linhas abaixo são cruciais quando o Eureka roda fora do container ou vice-versa
+    non-secure-port: 8081
+    status-page-url-path: /actuator/info
+    health-check-url-path: /actuator/health
+
+# =========================================================
+# 📊 ACTUATOR / OBSERVABILIDADE
+# =========================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        # Garante que o endpoint /actuator/prometheus esteja aberto
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+# =========================================================
+# 📝 LOGGING
+# =========================================================
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.cloud: INFO

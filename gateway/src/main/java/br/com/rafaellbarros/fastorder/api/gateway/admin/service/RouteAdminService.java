@@ -3,6 +3,7 @@ package br.com.rafaellbarros.fastorder.api.gateway.admin.service;
 import br.com.rafaellbarros.fastorder.api.gateway.dto.request.RouteRequestDTO;
 import br.com.rafaellbarros.fastorder.api.gateway.dto.response.RouteResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.cloud.discovery.enabled", havingValue = "true", matchIfMissing = true)
 public class RouteAdminService {
 
     private final RouteDefinitionWriter writer;

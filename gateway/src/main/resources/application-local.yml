@@ -11,11 +11,11 @@ spring:
 
   cloud:
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: false  # sem service discovery local
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
 
 eureka:
   client:
