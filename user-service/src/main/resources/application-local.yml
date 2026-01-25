@@ -2,6 +2,11 @@ spring:
   config:
     activate:
       on-profile: local
+  mvc:
+    static-path-pattern: /static/**
+  web:
+    resources:
+      static-locations: classpath:/static/
 
   security:
     oauth2:
@@ -35,7 +40,8 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui
-    css-theme: dark
+    operations-sorter: method
+    tags-sorter: alpha
   show-actuator: true
 
 eureka:
