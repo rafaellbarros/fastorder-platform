@@ -1,68 +1,145 @@
-# FastOrder – API Gateway
+# FastOrder Platform – API Gateway
 
 ## 📌 Visão Geral
 
-O **FastOrder API Gateway** é um gateway reativo construído com **Spring Boot 3 + Spring Cloud Gateway (WebFlux)**, projetado para atuar como ponto único de entrada da plataforma FastOrder. Ele centraliza **roteamento**, **segurança**, **tratamento padronizado de erros** e **logging estruturado**, integrando-se com **Keycloak (OAuth2 / OpenID Connect)** e preparado para futura integração com **Service Discovery**.
+O **FastOrder API Gateway** é um gateway reativo baseado em **Spring Boot 3 + Spring Cloud Gateway (WebFlux)** que atua como ponto único de entrada da plataforma **FastOrder**, responsável por:
 
-O projeto segue princípios de **arquitetura cloud-native**, separação de responsabilidades e padrões utilizados em ambientes corporativos.
+* Roteamento para microserviços
+* Validação de segurança via OAuth2 / JWT
+* Integração com **Service Discovery (Eureka)**
+* Tratamento padronizado de erros
+* Logging estruturado
+* Base para observabilidade distribuída
 
----
-
-## 🧱 Arquitetura de Responsabilidades
-
-| Camada                        | Responsabilidade                        |
-| ----------------------------- | --------------------------------------- |
-| **Spring Security (WebFlux)** | Autenticação e autorização              |
-| **Security Filters**          | Auditoria de acesso (logs de segurança) |
-| **Spring Cloud Gateway**      | Roteamento para microserviços           |
-| **Global Filters**            | Interceptação de tráfego roteado        |
-| **Exception Handlers**        | Padronização de respostas de erro       |
+A solução segue princípios de **arquitetura de microsserviços cloud-native**, com separação clara entre **Gateway, serviços de domínio e infraestrutura**.
 
 ---
 
-## 🔐 Segurança
+# 🧩 Arquitetura da Plataforma
 
-A aplicação atua como **OAuth2 Resource Server**, validando **JWT emitido pelo Keycloak**.
+```
+[ Client / Frontend ]
+          |
+          v
+[ API Gateway (WebFlux) ]
+          |
+          v
+   lb://user-service
+          |
+          v
+[ User Service (Spring MVC) ]
+```
 
-### Fluxo de autenticação
+### Infraestrutura de suporte
 
-1. Cliente autentica no **Keycloak**
-2. Recebe um `access_token` JWT
-3. Envia no header:
+| Componente        | Função                      |
+| ----------------- | --------------------------- |
+| **Eureka Server** | Service Discovery           |
+| **Keycloak**      | Authorization Server (OIDC) |
+| **Zipkin**        | Distributed Tracing         |
+| **Prometheus**    | Métricas                    |
+| **Actuator**      | Health + Metrics endpoints  |
+
+---
+
+# 🚪 Responsabilidades do Gateway
+
+| Camada                        | Responsabilidade           |
+| ----------------------------- | -------------------------- |
+| **Spring Cloud Gateway**      | Roteamento reativo         |
+| **Spring Security (WebFlux)** | Validação de JWT           |
+| **Security Filters**          | Logging de segurança       |
+| **Global Filters**            | Logging de tráfego roteado |
+| **Exception Handlers**        | Padronização de erros      |
+
+---
+
+# 🔐 Segurança
+
+O Gateway funciona como **OAuth2 Resource Server**, validando JWT emitido pelo **Keycloak**.
+
+### Fluxo
+
+1. Cliente autentica no Keycloak
+2. Recebe JWT
+3. Envia:
 
 ```
 Authorization: Bearer <token>
 ```
 
-4. O Gateway:
+4. Gateway:
 
-   * Valida assinatura do token
-   * Valida `issuer`
-   * Extrai roles de `realm_access.roles`
-   * Aplica regras de autorização por endpoint
+   * Valida assinatura
+   * Valida issuer
+   * Extrai roles
+   * Aplica autorização
 
-### Roles utilizadas
+### Configuração principal
 
-| Role         | Descrição                |
-| ------------ | ------------------------ |
-| `ROLE_ADMIN` | Acesso administrativo    |
-| `ROLE_USER`  | Acesso padrão de usuário |
+```yaml
+spring.security.oauth2.resourceserver.jwt.issuer-uri:
+  http://localhost:8085/realms/fastorder
+```
 
 ---
 
-## 🚫 Tratamento Global de Exceções
+## Roles
 
-Foi implementado um **GlobalExceptionHandler** para padronizar respostas de erro da API.
+| Role         | Uso           |
+| ------------ | ------------- |
+| `ROLE_ADMIN` | Administração |
+| `ROLE_USER`  | Acesso padrão |
 
-### Respostas de erro padronizadas
+---
 
-| Situação                          | HTTP | Estrutura de resposta |
-| --------------------------------- | ---- | --------------------- |
-| Falha de autenticação             | 401  | `UNAUTHORIZED`        |
-| Acesso negado (role insuficiente) | 403  | `FORBIDDEN`           |
-| Erro inesperado                   | 500  | `INTERNAL_ERROR`      |
+# 🔄 Service Discovery
 
-### Exemplo de resposta
+O Gateway **não usa URL fixa**. Ele descobre instâncias dinamicamente via **Eureka**:
+
+```yaml
+eureka.client.service-url.defaultZone: http://localhost:8761/eureka
+```
+
+Roteamento:
+
+```
+/api/users/** → lb://user-service
+```
+
+O **Spring Cloud LoadBalancer** resolve a instância ativa.
+
+---
+
+# 🧾 Logging
+
+## 1️⃣ Logging de Segurança
+
+Executado mesmo quando a requisição é bloqueada.
+
+Exemplo:
+
+```
+SECURITY GET /admin/routes -> 403 FORBIDDEN (9 ms)
+```
+
+## 2️⃣ Logging de Gateway
+
+Executado apenas quando a requisição é roteada para outro serviço.
+
+---
+
+# 🚫 Tratamento Global de Erros
+
+Respostas padronizadas:
+
+| Situação          | HTTP |
+| ----------------- | ---- |
+| Token inválido    | 401  |
+| Role insuficiente | 403  |
+| Erro inesperado   | 500  |
+
+Exemplo:
 
 ```json
 {
@@ -74,131 +151,72 @@ Foi implementado um **GlobalExceptionHandler** para padronizar respostas de erro
 
 ---
 
-## 🧾 Logging Implementado
+# ❤️ Observabilidade
 
-O projeto já possui **dois níveis de logging**, separados por responsabilidade.
+Preparado para:
 
-### 1️⃣ Logging de Segurança (Security Layer)
+* Métricas Prometheus
+* Tracing com Zipkin
+* Actuator health checks
+* Logs estruturados (evolução futura)
 
-Implementado via **WebFilter**, registrando:
+---
 
-* Método HTTP
-* URL
-* Status final
-* Tempo de resposta
+# ⚙ Perfis de Execução
 
-Exemplo:
+| Profile   | Infra obrigatória          | Uso                      |
+| --------- | -------------------------- | ------------------------ |
+| **local** | Keycloak + Eureka + Zipkin | Ambiente completo Docker |
+| **dev**   | Nenhuma                    | Desenvolvimento rápido   |
+| **test**  | Nenhuma                    | Testes automatizados     |
+
+Execução:
 
 ```
-SECURITY GET /admin/routes -> 403 FORBIDDEN (11 ms)
-```
-
-Esse log ocorre **mesmo quando a requisição é bloqueada pela segurança**.
-
----
-
-### 2️⃣ Logging de Gateway (Roteamento)
-
-Preparado via **GlobalFilter**, responsável por registrar:
-
-* Chamadas que **foram roteadas para microserviços**
-* Tempo de resposta do downstream
-
-Importante:
-
-> O `GlobalFilter` só é executado quando a requisição corresponde a uma **rota do Gateway**.
-> Endpoints internos como `/admin/**`, `/actuator/**` e endpoints da própria aplicação **não passam pelo Gateway Filter Chain**.
-
----
-
-## 🎨 Logs coloridos no console
-
-Foi configurado **Logback com `logback-spring.xml`** utilizando conversores do Spring Boot para exibição colorida e legível em ambiente local.
-
-Objetivo:
-
-* Melhor leitura em desenvolvimento
-* Preparação futura para logs estruturados (JSON + observabilidade)
-
----
-
-## 🚦 Rate Limit por Perfil
-
-Implementação inicial via **GlobalFilter** (in-memory):
-
-| Perfil       | Limite                             |
-| ------------ | ---------------------------------- |
-| `ROLE_ADMIN` | Sem limite                         |
-| Outros       | 100 requisições por janela simples |
-
-Projetado para futura substituição por:
-
-* Redis
-* Bucket4j
-* Rate limiting distribuído
-
----
-
-## 🔀 Roteamento
-
-Suporte a:
-
-* Roteamento estático via `application.yml`
-* Estrutura preparada para roteamento dinâmico via Admin API
-
-Exemplo:
-
-```
-/api/orders/** → lb://order-service
+-Dspring.profiles.active=local
 ```
 
 ---
 
-## ❤️ Observabilidade (Base preparada)
+# 🐳 Infraestrutura Docker
 
-O projeto já está organizado para evolução futura para:
+Serviços:
 
-* Correlation ID
-* Tracing distribuído
-* Logs estruturados
-* Integração com stack de observabilidade (ELK, Grafana, etc.)
-
----
-
-## 🐳 Infraestrutura (Docker)
-
-### Serviços
-
-* PostgreSQL 15
-* Keycloak 24
+| Serviço  | Porta |
+| -------- | ----- |
+| Keycloak | 8085  |
+| Eureka   | 8761  |
+| Zipkin   | 9411  |
 
 Subida:
 
 ```bash
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up
+docker compose -f docker/docker-compose-observability.yml up
 ```
 
-Keycloak:
+---
 
-* URL: [http://localhost:8085](http://localhost:8085)
-* Realm: `fastorder`
+# 🧪 Testes
+
+* `@SpringBootTest` com profile `test`
+* Feign clients mockados
+* `JwtDecoder` mockado
+* Infra externa desabilitada
 
 ---
 
-## 🧪 Testes
+# 🚀 Tecnologias
 
-* Testes de contexto com `@SpringBootTest`
-* Configuração de segurança isolada para testes
-* JWT mockado quando necessário
+* Java 21
+* Spring Boot 3
+* Spring Cloud Gateway
+* Spring Security OAuth2 Resource Server
+* Eureka Discovery
+* OpenFeign + LoadBalancer
+* Keycloak
+* Prometheus
+* Zipkin
+* Docker
 
----
 
-## 🚀 Tecnologias Utilizadas
-
-* Java 21+
-* Spring Boot 3.x
-* Spring Cloud Gateway (WebFlux)
-* Spring Security (OAuth2 Resource Server)
-* JWT / Keycloak
-* Logback
-* Docker / Docker Compose

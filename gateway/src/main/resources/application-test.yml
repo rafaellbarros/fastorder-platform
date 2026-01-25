@@ -1,0 +1,25 @@
+spring:
+  cloud:
+    discovery:
+      enabled: false
+    loadbalancer:
+      enabled: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://fake
+
+eureka:
+  client:
+    enabled: false
+
+
+management:
+  tracing:
+    enabled: false
+
+logging:
+  level:
+    root: WARN

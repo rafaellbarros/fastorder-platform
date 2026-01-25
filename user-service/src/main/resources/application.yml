@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: user-service
+
+  profiles:
+    default: local
+
   output:
     ansi:
       enabled: ALWAYS

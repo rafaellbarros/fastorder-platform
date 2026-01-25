@@ -2,11 +2,13 @@ package br.com.rafaellbarros.user;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-// @SpringBootTest
+@SpringBootTest
+@ActiveProfiles("test")
 class UserServiceApplicationTests {
 
-    // @Test
+    @Test
     void contextLoads() {
     }
 
