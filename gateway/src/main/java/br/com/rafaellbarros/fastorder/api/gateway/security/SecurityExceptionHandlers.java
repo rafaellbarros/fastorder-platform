@@ -61,16 +61,12 @@ public class SecurityExceptionHandlers {
         response.setStatusCode(status);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-        log.info("RESPONSE: {}", response);
-
         var body = ApiErrorResponseDTO.builder()
                 .error(error)
                 .message(message)
                 .path(exchange.getRequest().getPath().value())
                 .timestamp(Instant.now())
                 .build();
-
-        log.info("BODY: {}", body);
 
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(body);

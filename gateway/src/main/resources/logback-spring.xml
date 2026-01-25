@@ -2,28 +2,50 @@
 
     <springProperty scope="context" name="appName" source="spring.application.name"/>
 
-    <!-- APPENDER JSON PADRÃO (LOKI / OBSERVABILIDADE) -->
     <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
 
-            <!-- Nome do serviço -->
-            <customFields>{"service":"${appName}"}</customFields>
+            <providers>
 
-            <!-- Inclui MDC (traceId, spanId, etc) -->
-            <includeMdc>true</includeMdc>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
 
-            <!-- Melhora compatibilidade com Loki -->
-            <timeZone>UTC</timeZone>
+                <logLevel/>
+                <loggerName/>
+                <threadName/>
+                <message/> <!-- GARANTE A MESSAGE -->
+
+                <arguments/>
+
+                <mdc/> <!-- traceId / spanId -->
+
+                <stackTrace> <!-- GARANTE STACKTRACE COMPLETO -->
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>50</maxDepthPerThrowable>
+                        <maxLength>20480</maxLength>
+                        <shortenedClassNameLength>20</shortenedClassNameLength>
+                        <exclude>sun\.reflect\..*</exclude>
+                        <exclude>java\.lang\.reflect\..*</exclude>
+                    </throwableConverter>
+                </stackTrace>
+
+                <pattern>
+                    <pattern>
+                        {
+                        "service": "${appName}"
+                        }
+                    </pattern>
+                </pattern>
+
+            </providers>
 
         </encoder>
     </appender>
 
-    <!-- LOG NÍVEL SPRING REDUZIDO -->
     <logger name="org.springframework" level="WARN"/>
     <logger name="reactor.netty" level="WARN"/>
     <logger name="org.springframework.cloud.gateway" level="INFO"/>
-
-    <!-- SUA APLICAÇÃO -->
     <logger name="br.com.rafaellbarros" level="INFO"/>
 
     <root level="INFO">
@@ -31,3 +53,4 @@
     </root>
 
 </configuration>
+s

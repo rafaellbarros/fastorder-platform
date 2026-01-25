@@ -3,6 +3,12 @@ spring:
     activate:
       on-profile: local
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8085/realms/fastorder
+
   h2:
     console:
       enabled: true
@@ -29,6 +35,7 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui
+    css-theme: dark
   show-actuator: true
 
 eureka:
