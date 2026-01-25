@@ -16,7 +16,8 @@ spring:
           enabled: true
           lower-case-service-id: true
 
-
 eureka:
   client:
-    enabled: false  # desabilita Eureka local
+    enabled: true #false desabilita local
+  instance:
+    prefer-ip-address: true

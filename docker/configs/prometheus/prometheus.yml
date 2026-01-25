@@ -16,7 +16,7 @@ scrape_configs:
       - targets: ["host.docker.internal:8084"]
     relabel_configs:
       - source_labels: [__address__]
-        target_ label: instance
+        target_label: instance
       - source_labels: [__address__]
         regex: "([^:]+):\\d+"
         target_label: host

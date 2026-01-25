@@ -54,7 +54,8 @@ services:
     image: grafana/promtail:2.9.3
     container_name: promtail-fastorder
     volumes:
-      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /etc/machine-id:/etc/machine-id:ro
       - ./configs/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
     command: -config.file=/etc/promtail/promtail-config.yml
     depends_on:

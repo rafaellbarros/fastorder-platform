@@ -2,47 +2,32 @@
 
     <springProperty scope="context" name="appName" source="spring.application.name"/>
 
-    <!-- PERFIS DEV / LOCAL -->
-    <springProfile name="dev | local | default">
+    <!-- APPENDER JSON PADRÃO (LOKI / OBSERVABILIDADE) -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
 
-        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>
-                    %d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36}
-                    [%X{traceId:-},%X{spanId:-}] - %msg%n
-                </pattern>
-            </encoder>
-        </appender>
+            <!-- Nome do serviço -->
+            <customFields>{"service":"${appName}"}</customFields>
 
-        <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-        </root>
+            <!-- Inclui MDC (traceId, spanId, etc) -->
+            <includeMdc>true</includeMdc>
 
-    </springProfile>
+            <!-- Melhora compatibilidade com Loki -->
+            <timeZone>UTC</timeZone>
 
-    <!-- PERFIS STAGING / PROD -->
-    <springProfile name="staging | prod | cloud">
+        </encoder>
+    </appender>
 
-        <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+    <!-- LOG NÍVEL SPRING REDUZIDO -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="reactor.netty" level="WARN"/>
+    <logger name="org.springframework.cloud.gateway" level="INFO"/>
 
-                <!-- Campos fixos -->
-                <customFields>{"service":"${appName}"}</customFields>
+    <!-- SUA APLICAÇÃO -->
+    <logger name="br.com.rafaellbarros" level="INFO"/>
 
-                <!-- 🔥 CAMPOS DE RASTREABILIDADE -->
-                <includeMdc>true</includeMdc>
-
-                <!-- (Opcional) renomeia campos MDC -->
-                <mdcKeyFieldName>traceId=traceId</mdcKeyFieldName>
-                <mdcKeyFieldName>spanId=spanId</mdcKeyFieldName>
-
-            </encoder>
-        </appender>
-
-        <root level="INFO">
-            <appender-ref ref="JSON"/>
-        </root>
-
-    </springProfile>
+    <root level="INFO">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </root>
 
 </configuration>
