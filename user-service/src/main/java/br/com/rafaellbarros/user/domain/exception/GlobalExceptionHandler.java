@@ -2,6 +2,7 @@ package br.com.rafaellbarros.user.domain.exception;
 
 import br.com.rafaellbarros.user.dto.ApiError;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +25,15 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
     private static final String VALIDATION_FAILED = "Validation failed";
     private static final String INVALID_REQUEST = "Invalid request";
     private static final String ACCESS_DENIED = "Access denied";
     private static final String INTERNAL_SERVER_ERROR = "Internal server error";
+
+    private final FriendlyFieldErrorResolver fieldResolver;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationException(
@@ -38,13 +42,17 @@ public class GlobalExceptionHandler {
 
         List<ApiError.ValidationError> validationErrors = new ArrayList<>();
 
+
         // Field errors
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
         for (FieldError fieldError : fieldErrors) {
+
+            String friendlyField = fieldResolver.resolveFieldName(fieldError.getField());
+
             validationErrors.add(ApiError.ValidationError.builder()
-                    .field(fieldError.getField())
+                    .field(friendlyField)
                     .rejectedValue(fieldError.getRejectedValue())
-                    .message(fieldError.getDefaultMessage())
+                    .message(friendlyField + " " + fieldError.getDefaultMessage())
                     .constraint(fieldError.getCode())
                     .build());
         }
@@ -59,15 +67,11 @@ public class GlobalExceptionHandler {
                     .build());
         }
 
-        // Log validation errors at debug level
-        if (log.isDebugEnabled()) {
-            String errorDetails = validationErrors.stream()
-                    .map(error -> String.format("%s: %s", error.getField(), error.getMessage()))
-                    .collect(Collectors.joining(", "));
-            log.debug("Validation errors: {}", errorDetails);
-        } else {
-            log.warn("Validation failed with {} errors", validationErrors.size());
-        }
+        String errorDetails = validationErrors.stream()
+                .map(error -> String.format("%s: %s", error.getField(), error.getMessage()))
+                .collect(Collectors.joining(", "));
+
+        log.warn("Validation failed → {}", errorDetails);
 
         String path = ((ServletWebRequest) request).getRequest().getRequestURI();
 

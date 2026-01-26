@@ -18,11 +18,11 @@ import lombok.NoArgsConstructor;
 @Schema(description = "User update request data")
 public class UpdateUserRequestDTO {
 
-    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+    @Size(min = 2, max = 100, message = "{javax.validation.constraints.Size.message}")
     @Schema(description = "User full name", example = "John Doe Updated")
     private String name;
 
-    @Email(message = "Invalid email format")
+    @Email(message = "{javax.validation.constraints.Email.message}")
     @Schema(description = "User email address", example = "john.updated@example.com")
     private String email;
 

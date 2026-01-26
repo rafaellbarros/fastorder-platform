@@ -1,6 +1,7 @@
 server:
   port: 8081
 
+
 spring:
   application:
     name: user-service
@@ -12,6 +13,11 @@ spring:
 
   profiles:
     default: local
+
+  messages:
+    basename: messages,ValidationMessages
+    encoding: UTF-8
+    fallback-to-system-locale: false
 
   output:
     ansi:

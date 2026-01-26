@@ -20,13 +20,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateUserRequestDTO {
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+    @NotBlank(message = "{javax.validation.constraints.NotBlank.message}")
+    @Size(min = 2, max = 100, message = "{javax.validation.constraints.Size.message}")
     @Schema(description = "User full name", example = "John Doe", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "{javax.validation.constraints.NotBlank.message}")
+    @Email(message = "{javax.validation.constraints.Email.message}")
     @Schema(description = "User email address", example = "john.doe@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
     private String email;
 
