@@ -117,7 +117,7 @@ public class UserController {
     )
     public ResponseEntity<UserResponseDTO> getUserById(
             @Parameter(description = "User ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
         log.debug("Retrieving user with ID: {}", id);
         UserResponseDTO response = userService.getUserById(id);
         return ResponseEntity.ok(response);
@@ -211,7 +211,7 @@ public class UserController {
     )
     public ResponseEntity<UserResponseDTO> updateUser(
             @Parameter(description = "User ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody UpdateUserRequestDTO request) {
         log.debug("Updating user with ID: {}", id);
         UserResponseDTO response = userService.updateUser(id, request);
