@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "User creation request data")
 public class CreateUserRequestDTO {
 
     @NotBlank(message = "Name is required")

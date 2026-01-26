@@ -6,19 +6,13 @@ import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.response.UserResponseDTO;
 import org.mapstruct.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
 /**
  * Mapper for converting between User entities and DTOs
  */
-@Mapper(
-        componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
-)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
     /**
@@ -65,22 +59,5 @@ public interface UserMapper {
         return isActive ? "ACTIVE" : "INACTIVE";
     }
 
-
-    /**
-     * After mapping callback to set updated timestamp
-     */
-    @AfterMapping
-    default void afterUpdate(@MappingTarget User user) {
-        user.setUpdatedAt(java.time.LocalDateTime.now());
-    }
-
-    /**
-     * After mapping callback for creation
-     */
-    @AfterMapping
-    default void afterCreate(@MappingTarget User user, CreateUserRequestDTO request) {
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
-    }
 
 }

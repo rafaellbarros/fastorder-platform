@@ -40,9 +40,9 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui
-    operations-sorter: method
+    operations-sorter: alpha
     tags-sorter: alpha
-  show-actuator: true
+  show-actuator: false
 
 eureka:
   client:

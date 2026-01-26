@@ -19,7 +19,7 @@ public class ApiErrorResponseWriter {
     }
 
     public void write(HttpServletResponse response, ApiError error) throws IOException {
-        response.setStatus(error.status());
+        response.setStatus(error.getStatus());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
