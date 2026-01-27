@@ -1,0 +1,69 @@
+flowchart LR
+
+    Client[Client / Frontend]
+
+    subgraph Edge Layer
+        Gateway[API Gateway Spring Cloud Gateway]
+    end
+
+    subgraph Core Services
+        UserService[User Service Spring Boot]
+    end
+
+    subgraph Platform Services
+        Eureka[Eureka Discovery Server]
+        Keycloak[Keycloak Auth Server]
+        ObsStarter[Observability Starter Micrometer + OTel + Logback]
+    end
+
+    subgraph Observability Stack
+
+        subgraph Tracing
+            Zipkin[Zipkin]
+        end
+
+        subgraph Metrics
+            Prometheus[Prometheus]
+        end
+
+        subgraph Logs
+            Loki[Loki]
+            Promtail[Promtail]
+        end
+
+        subgraph Visualization
+            Grafana[Grafana Dashboards]
+        end
+    end
+
+    %% TRAFFIC
+    Client -->|HTTP| Gateway
+    Gateway -->|lb://user-service| UserService
+
+    %% SERVICE DISCOVERY
+    Gateway --> Eureka
+    UserService --> Eureka
+
+    %% AUTH
+    Gateway -->|JWT Validation| Keycloak
+    UserService -->|JWT Validation| Keycloak
+
+    %% OBS STARTER INJECTION
+    Gateway --> ObsStarter
+    UserService --> ObsStarter
+
+    %% TRACING
+    ObsStarter -->|Traces (OTel)| Zipkin
+
+    %% METRICS
+    ObsStarter -->|/actuator/prometheus| Prometheus
+
+    %% LOG FLOW
+    Gateway -->|Logs| Promtail
+    UserService -->|Logs| Promtail
+    Promtail --> Loki
+
+    %% DASHBOARDS
+    Grafana --> Prometheus
+    Grafana --> Loki
+    Grafana --> Zipkin
