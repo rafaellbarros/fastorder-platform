@@ -175,6 +175,29 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<excludes>
+
+								<!-- Infraestrutura -->
+								<exclude>**/config/**</exclude>
+								<exclude>**/security/**</exclude>
+								<exclude>**/exception/**</exclude>
+								<exclude>**/*Application*</exclude>
+
+								<!-- Camadas que não medem regra -->
+								<exclude>**/dto/**</exclude>
+								<exclude>**/entity/**</exclude>
+								<exclude>**/domain/model/**</exclude>
+								<exclude>**/repository/**</exclude>
+								<exclude>**/persistence/**</exclude>
+								<exclude>**/mapper/**</exclude>
+
+								<!-- Classes geradas -->
+								<exclude>**/*MapperImpl*</exclude>
+								<exclude>**/generated/**</exclude>
+
+							</excludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
