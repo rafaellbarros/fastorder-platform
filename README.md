@@ -1,186 +1,268 @@
-# FastOrder Platform – API Gateway
+# 🚀 FastOrder Platform – Cloud-Native Microservices Architecture
+
+![Build Status](https://github.com/rafaellbarros/fastorder-platform/actions/workflows/build.yml/badge.svg?branch=main)
+![Coverage](https://img.shields.io/codecov/c/github/rafaellbarros/fastorder-platform)
+![Tests](https://img.shields.io/github/actions/workflow/status/rafaellbarros/fastorder-platform/build.yml?label=tests)
+![Coverage](https://img.shields.io/codecov/c/github/rafaellbarros/fastorder-platform)
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
+![Architecture](https://img.shields.io/badge/Architecture-Microservices-blueviolet)
+![Security](https://img.shields.io/badge/Security-OAuth2%20JWT-red)
 
 ## 📌 Visão Geral
 
-O **FastOrder API Gateway** é um gateway reativo baseado em **Spring Boot 3 + Spring Cloud Gateway (WebFlux)** que atua como ponto único de entrada da plataforma **FastOrder**, responsável por:
+A **FastOrder Platform** é uma arquitetura de microsserviços **cloud-native** baseada em **Spring Boot 3 / Java 21**, projetada com foco em:
 
-* Roteamento para microserviços
-* Validação de segurança via OAuth2 / JWT
-* Integração com **Service Discovery (Eureka)**
-* Tratamento padronizado de erros
+* Escalabilidade
+* Observabilidade
+* Segurança OAuth2/JWT
+* Padronização de erros
 * Logging estruturado
-* Base para observabilidade distribuída
+* Boas práticas de design (DDD + Clean Architecture)
 
-A solução segue princípios de **arquitetura de microsserviços cloud-native**, com separação clara entre **Gateway, serviços de domínio e infraestrutura**.
-
----
-
-# 🧩 Arquitetura da Plataforma
-
-```
-[ Client / Frontend ]
-          |
-          v
-[ API Gateway (WebFlux) ]
-          |
-          v
-   lb://user-service
-          |
-          v
-[ User Service (Spring MVC) ]
-```
-
-### Infraestrutura de suporte
-
-| Componente        | Função                      |
-| ----------------- | --------------------------- |
-| **Eureka Server** | Service Discovery           |
-| **Keycloak**      | Authorization Server (OIDC) |
-| **Zipkin**        | Distributed Tracing         |
-| **Prometheus**    | Métricas                    |
-| **Actuator**      | Health + Metrics endpoints  |
+A plataforma é composta por **Gateway, serviços de domínio, service discovery e um starter de observabilidade reutilizável**.
 
 ---
 
-# 🚪 Responsabilidades do Gateway
+# 🧩 Módulos do Projeto
 
-| Camada                        | Responsabilidade           |
-| ----------------------------- | -------------------------- |
-| **Spring Cloud Gateway**      | Roteamento reativo         |
-| **Spring Security (WebFlux)** | Validação de JWT           |
-| **Security Filters**          | Logging de segurança       |
-| **Global Filters**            | Logging de tráfego roteado |
-| **Exception Handlers**        | Padronização de erros      |
+| Módulo                    | Responsabilidade                                    |
+| ------------------------- | --------------------------------------------------- |
+| **gateway**               | API Gateway reativo (WebFlux)                       |
+| **user-service**          | Microsserviço de usuários (Spring MVC)              |
+| **discovery-server**      | Eureka Service Discovery                            |
+| **observability-starter** | Auto-configuração de logging, métricas e tracing    |
+| **docker/**               | Infraestrutura local (Keycloak, Zipkin, Prometheus) |
+
+---
+
+
+
+## 🏗 Arquitetura da Plataforma
+
+![Arquitetura da Plataforma](documentation/images/arch_project.png)
+
+---
+
+## 🎯 O que o diagrama mostra
+
+| Camada | Papel |
+|--------|------|
+| **Client** | Consumidor da API |
+| **Gateway** | Roteamento, segurança, logging |
+| **User Service** | Domínio de usuários |
+| **Eureka** | Service discovery |
+| **Keycloak** | Autenticação e autorização |
+| **Observability Starter** | Logging + métricas + tracing |
+| **Zipkin** | Distributed tracing |
+| **Prometheus** | Coleta de métricas |
+
+---
+
+## 🧠 Benefícios arquiteturais evidenciados
+
+- API Gateway como **ponto único de entrada**
+- Comunicação via **Service Discovery**
+- Segurança centralizada com **OAuth2/JWT**
+- Observabilidade desacoplada via **starter reutilizável**
+- Arquitetura pronta para **escala horizontal**
+
+---
+
+### Infraestrutura de Suporte
+
+| Componente | Função                      |
+| ---------- | --------------------------- |
+| Keycloak   | Authorization Server (OIDC) |
+| Eureka     | Service Discovery           |
+| Zipkin     | Distributed Tracing         |
+| Prometheus | Métricas                    |
+| Actuator   | Health & Metrics            |
+
+---
+
+# 🚪 API Gateway
+
+Tecnologias:
+
+* Spring Cloud Gateway
+* Spring Security WebFlux
+* JWT Resource Server
+* Filtros globais reativos
+* Logging de tráfego
+* Tratamento global de erros
+
+### Responsabilidades
+
+| Camada            | Função                           |
+| ----------------- | -------------------------------- |
+| Routing           | Roteamento reativo               |
+| Security          | Validação de JWT                 |
+| Filters           | Logging de requisições/respostas |
+| Exception Handler | Erros padronizados               |
+
+---
+
+# 👤 User Service
+
+Microsserviço responsável pelo domínio de usuários.
+
+### Stack
+
+* Spring Boot MVC
+* Spring Security Resource Server
+* JPA + Repository Pattern
+* MapStruct
+* Bean Validation avançado
+* Swagger customizado
+* Testes unitários e de camada web
+
+---
+
+## ✅ Validação de Dados (Feature nova)
+
+Implementação de **validação amigável e profissional**, com:
+
+* Mensagens centralizadas (`ValidationMessages.properties`)
+* Resolução de nomes amigáveis de campos
+* Estrutura de erro consistente
+* Suporte a múltiplos erros por campo
+
+### Exemplo de erro de validação
+
+```json
+{
+  "timestamp": "2026-01-26T16:36:14Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed",
+  "path": "/api/v1/users",
+  "validationErrors": [
+    {
+      "field": "Email",
+      "message": "Please provide a valid Email address",
+      "constraint": "Email"
+    }
+  ]
+}
+```
+
+### Componentes envolvidos
+
+| Classe                       | Papel                          |
+| ---------------------------- | ------------------------------ |
+| `ValidationConfig`           | Configura MessageSource        |
+| `FriendlyFieldErrorResolver` | Traduz nome técnico → amigável |
+| `GlobalExceptionHandler`     | Monta resposta padronizada     |
+| `ApiErrorResponseWriter`     | Escrita de erro de segurança   |
+
+---
+
+# 🧾 Padronização de Erros
+
+Todos os serviços seguem o mesmo contrato:
+
+```json
+{
+  "timestamp": "...",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed",
+  "path": "/api/...",
+  "validationErrors": []
+}
+```
+
+Erros cobertos:
+
+| Tipo            | HTTP |
+| --------------- | ---- |
+| Validação       | 400  |
+| Não encontrado  | 404  |
+| Não autenticado | 401  |
+| Acesso negado   | 403  |
+| Erro interno    | 500  |
 
 ---
 
 # 🔐 Segurança
 
-O Gateway funciona como **OAuth2 Resource Server**, validando JWT emitido pelo **Keycloak**.
-
-### Fluxo
-
-1. Cliente autentica no Keycloak
-2. Recebe JWT
-3. Envia:
-
-```
-Authorization: Bearer <token>
-```
-
-4. Gateway:
-
-   * Valida assinatura
-   * Valida issuer
-   * Extrai roles
-   * Aplica autorização
-
-### Configuração principal
+Todos os serviços funcionam como **OAuth2 Resource Server**.
 
 ```yaml
 spring.security.oauth2.resourceserver.jwt.issuer-uri:
   http://localhost:8085/realms/fastorder
 ```
 
----
+JWT é validado quanto a:
 
-## Roles
-
-| Role         | Uso           |
-| ------------ | ------------- |
-| `ROLE_ADMIN` | Administração |
-| `ROLE_USER`  | Acesso padrão |
+* Assinatura
+* Issuer
+* Expiração
+* Roles
 
 ---
 
-# 🔄 Service Discovery
+# 🔍 Logging Estruturado
 
-O Gateway **não usa URL fixa**. Ele descobre instâncias dinamicamente via **Eureka**:
+Implementado nos serviços e no gateway:
 
-```yaml
-eureka.client.service-url.defaultZone: http://localhost:8761/eureka
-```
-
-Roteamento:
-
-```
-/api/users/** → lb://user-service
-```
-
-O **Spring Cloud LoadBalancer** resolve a instância ativa.
-
----
-
-# 🧾 Logging
-
-## 1️⃣ Logging de Segurança
-
-Executado mesmo quando a requisição é bloqueada.
-
-Exemplo:
+### Gateway
 
 ```
 SECURITY GET /admin/routes -> 403 FORBIDDEN (9 ms)
+ROUTED POST /api/users -> user-service (32 ms)
 ```
 
-## 2️⃣ Logging de Gateway
+### User Service
 
-Executado apenas quando a requisição é roteada para outro serviço.
-
----
-
-# 🚫 Tratamento Global de Erros
-
-Respostas padronizadas:
-
-| Situação          | HTTP |
-| ----------------- | ---- |
-| Token inválido    | 401  |
-| Role insuficiente | 403  |
-| Erro inesperado   | 500  |
-
-Exemplo:
-
-```json
-{
-  "error": "FORBIDDEN",
-  "message": "Access Denied",
-  "timestamp": "2026-01-23T11:43:55.225Z"
-}
+```
+Validation failed → email: must be a well-formed email address
 ```
 
 ---
 
-# ❤️ Observabilidade
+# ❤️ Observabilidade (Starter próprio)
 
-Preparado para:
+O módulo **observability-starter** fornece:
 
-* Métricas Prometheus
-* Tracing com Zipkin
-* Actuator health checks
-* Logs estruturados (evolução futura)
+* Propagação MDC reativa
+* Configuração padrão de logs
+* Estrutura para métricas
+* Estrutura para tracing
 
----
-
-# ⚙ Perfis de Execução
-
-| Profile   | Infra obrigatória          | Uso                      |
-| --------- | -------------------------- | ------------------------ |
-| **local** | Keycloak + Eureka + Zipkin | Ambiente completo Docker |
-| **dev**   | Nenhuma                    | Desenvolvimento rápido   |
-| **test**  | Nenhuma                    | Testes automatizados     |
-
-Execução:
-
-```
--Dspring.profiles.active=local
-```
+Pode ser reutilizado em qualquer microsserviço futuro.
 
 ---
 
-# 🐳 Infraestrutura Docker
+# 🧪 Testes Automatizados
 
-Serviços:
+Cobertura em múltiplas camadas:
+
+| Tipo                  | Implementado |
+| --------------------- | ------------ |
+| Controller tests      | ✅            |
+| Service tests         | ✅            |
+| Mapper tests          | ✅            |
+| Security config tests | ✅            |
+
+Ferramentas:
+
+* JUnit 5
+* Mockito
+* AssertJ
+* Spring Boot Test
+
+---
+
+# 🐳 Infraestrutura Local
+
+Subida completa:
+
+```bash
+docker compose -f docker/docker-compose.yml up
+docker compose -f docker/docker-compose-observability.yml up
+```
 
 | Serviço  | Porta |
 | -------- | ----- |
@@ -188,21 +270,15 @@ Serviços:
 | Eureka   | 8761  |
 | Zipkin   | 9411  |
 
-Subida:
-
-```bash
-docker compose -f docker/docker-compose.yml up
-docker compose -f docker/docker-compose-observability.yml up
-```
-
 ---
 
-# 🧪 Testes
+# ⚙ Perfis
 
-* `@SpringBootTest` com profile `test`
-* Feign clients mockados
-* `JwtDecoder` mockado
-* Infra externa desabilitada
+| Profile | Uso                  |
+| ------- | -------------------- |
+| local   | Ambiente completo    |
+| dev     | Desenvolvimento      |
+| test    | Testes automatizados |
 
 ---
 
@@ -211,12 +287,28 @@ docker compose -f docker/docker-compose-observability.yml up
 * Java 21
 * Spring Boot 3
 * Spring Cloud Gateway
-* Spring Security OAuth2 Resource Server
-* Eureka Discovery
-* OpenFeign + LoadBalancer
+* Spring Security OAuth2
+* Spring Data JPA
+* MapStruct
+* OpenAPI / Swagger
+* Eureka
 * Keycloak
-* Prometheus
 * Zipkin
+* Prometheus
 * Docker
 
+---
 
+# 📈 Evolução recente
+
+Últimas features implementadas:
+
+* ✅ CRUD completo de usuários
+* ✅ Swagger customizado
+* ✅ Tratamento global de erros
+* ✅ Validação amigável
+* ✅ Logging estruturado
+* ✅ Testes automatizados
+* ✅ Starter de observabilidade
+
+---

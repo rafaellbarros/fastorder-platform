@@ -2,6 +2,7 @@ package br.com.rafaellbarros.user.controller;
 
 import br.com.rafaellbarros.user.config.TestSecurityConfig;
 import br.com.rafaellbarros.user.domain.exception.BusinessException;
+import br.com.rafaellbarros.user.domain.exception.FriendlyFieldErrorResolver;
 import br.com.rafaellbarros.user.domain.exception.UserNotFoundException;
 import br.com.rafaellbarros.user.dto.request.CreateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
@@ -24,15 +25,14 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, FriendlyFieldErrorResolver.class})
 @DisplayName("UserController Integration Tests")
 class UserControllerTest {
 
@@ -45,11 +45,18 @@ class UserControllerTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private FriendlyFieldErrorResolver fieldResolver;
+
     private UUID userId;
     private UserResponseDTO userResponseDTO;
 
     @BeforeEach
     void setUp() {
+
+        given(fieldResolver.resolveFieldName(anyString()))
+                .willAnswer(inv -> inv.getArgument(0));
+
         userId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         userResponseDTO = UserResponseDTO.builder()
                 .id(userId)
@@ -60,6 +67,8 @@ class UserControllerTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+
+
     }
 
     @Test
