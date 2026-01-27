@@ -181,6 +181,7 @@
 								<!-- Infraestrutura -->
 								<exclude>**/config/**</exclude>
 								<exclude>**/security/**</exclude>
+								<exclude>**/filter/**</exclude>
 								<exclude>**/exception/**</exclude>
 								<exclude>**/*Application*</exclude>
 
