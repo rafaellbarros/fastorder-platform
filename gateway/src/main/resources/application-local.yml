@@ -16,6 +16,13 @@ spring:
           enabled: true
           lower-case-service-id: true
 
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 eureka:
   client:
     enabled: true #false desabilita local

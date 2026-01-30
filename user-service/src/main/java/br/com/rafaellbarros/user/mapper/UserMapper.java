@@ -3,8 +3,10 @@ package br.com.rafaellbarros.user.mapper;
 import br.com.rafaellbarros.user.domain.model.User;
 import br.com.rafaellbarros.user.dto.request.CreateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
+import br.com.rafaellbarros.user.dto.response.PageResponseDTO;
 import br.com.rafaellbarros.user.dto.response.UserResponseDTO;
 import org.mapstruct.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -14,6 +16,23 @@ import java.util.List;
  */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
+
+    default PageResponseDTO<UserResponseDTO> toPageResponseDTO(Page<User> page) {
+
+        List<UserResponseDTO> content = page.getContent()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return new PageResponseDTO<>(
+                content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast()
+        );
+    }
 
     /**
      * Converts CreateUserRequestDTO to User entity
@@ -39,6 +58,7 @@ public interface UserMapper {
      * Converts list of User entities to list of UserResponseDTO
      */
     List<UserResponseDTO> toResponseList(List<User> users);
+
 
 
     /**

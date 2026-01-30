@@ -71,3 +71,4 @@ logging:
     root: INFO
     org.springframework.web: INFO
     org.springframework.cloud: INFO
+    org.springframework.cache: TRACE

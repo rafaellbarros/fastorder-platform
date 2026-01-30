@@ -33,6 +33,13 @@ spring:
       hibernate:
         format_sql: true
 
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 springdoc:
   api-docs:
     enabled: true

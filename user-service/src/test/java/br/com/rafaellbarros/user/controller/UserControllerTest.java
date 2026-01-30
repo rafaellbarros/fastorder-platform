@@ -6,6 +6,7 @@ import br.com.rafaellbarros.user.domain.exception.FriendlyFieldErrorResolver;
 import br.com.rafaellbarros.user.domain.exception.UserNotFoundException;
 import br.com.rafaellbarros.user.dto.request.CreateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
+import br.com.rafaellbarros.user.dto.response.PageResponseDTO;
 import br.com.rafaellbarros.user.dto.response.UserResponseDTO;
 import br.com.rafaellbarros.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +28,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -296,6 +298,88 @@ class UserControllerTest {
                 .willThrow(new RuntimeException("Unexpected error"));
 
         mockMvc.perform(get("/api/v1/users/all"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/paged - Should use default page=0 size=10")
+    void shouldUseDefaultPagination() throws Exception {
+
+        PageResponseDTO<UserResponseDTO> pageResponse =
+                new PageResponseDTO<>(List.of(userResponseDTO), 0, 10, 1, 1, true);
+
+        given(userService.getAllUsers(0, 10)).willReturn(pageResponse);
+
+        mockMvc.perform(get("/api/v1/users/paged"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true));
+
+        then(userService).should().getAllUsers(0, 10);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/paged - Should use provided page and size")
+    void shouldUseProvidedPagination() throws Exception {
+
+        PageResponseDTO<UserResponseDTO> pageResponse =
+                new PageResponseDTO<>(List.of(userResponseDTO), 2, 5, 20, 4, false);
+
+        given(userService.getAllUsers(2, 5)).willReturn(pageResponse);
+
+        mockMvc.perform(get("/api/v1/users/paged")
+                        .param("page", "2")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(2))
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.totalElements").value(20))
+                .andExpect(jsonPath("$.totalPages").value(4))
+                .andExpect(jsonPath("$.last").value(false));
+
+        then(userService).should().getAllUsers(2, 5);
+    }
+
+
+    @Test
+    @DisplayName("GET /api/v1/users/paged - Should return empty page")
+    void shouldReturnEmptyPage() throws Exception {
+
+        PageResponseDTO<UserResponseDTO> emptyPage =
+                new PageResponseDTO<>(List.of(), 0, 10, 0, 0, true);
+
+        given(userService.getAllUsers(0, 10)).willReturn(emptyPage);
+
+        mockMvc.perform(get("/api/v1/users/paged"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(0)))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0))
+                .andExpect(jsonPath("$.last").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/paged - Should return 400 when page is invalid")
+    void shouldReturn400WhenPageInvalid() throws Exception {
+
+        mockMvc.perform(get("/api/v1/users/paged")
+                        .param("page", "abc"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/paged - Should return 500 on unexpected error")
+    void shouldReturn500WhenPagedFails() throws Exception {
+
+        given(userService.getAllUsers(anyInt(), anyInt()))
+                .willThrow(new RuntimeException("DB down"));
+
+        mockMvc.perform(get("/api/v1/users/paged"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").exists());
     }

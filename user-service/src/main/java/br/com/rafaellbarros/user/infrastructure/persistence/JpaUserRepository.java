@@ -4,7 +4,8 @@ import br.com.rafaellbarros.user.domain.model.User;
 import br.com.rafaellbarros.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -51,6 +52,12 @@ public class JpaUserRepository implements UserRepository {
     public List<User> findAll() {
         log.debug("Finding all users");
         return springDataRepository.findAllActive();
+    }
+
+    @Override
+    public Page<User> findAll(Pageable pageable) {
+        log.debug("Finding all users pageable: {}", pageable);
+        return springDataRepository.findAll(pageable);
     }
 
     @Override

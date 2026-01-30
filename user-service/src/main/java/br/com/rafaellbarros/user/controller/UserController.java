@@ -2,20 +2,19 @@ package br.com.rafaellbarros.user.controller;
 
 import br.com.rafaellbarros.user.dto.request.CreateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
+import br.com.rafaellbarros.user.dto.response.PageResponseDTO;
 import br.com.rafaellbarros.user.dto.response.UserResponseDTO;
 import br.com.rafaellbarros.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -116,8 +115,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<UserResponseDTO> getUserById(
-            @Parameter(description = "User ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
-            @PathVariable("id") UUID id) {
+            @PathVariable @Parameter(description = "User ID", required = true, example = "123e4567-e89b-12d3-a456-426614174000") UUID id) {
         log.debug("Retrieving user with ID: {}", id);
         UserResponseDTO response = userService.getUserById(id);
         return ResponseEntity.ok(response);
@@ -144,6 +142,34 @@ public class UserController {
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         log.debug("Retrieving all active users");
         List<UserResponseDTO> response = userService.getAllUsers();
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Retrieves all users pageable
+     */
+    @Operation(
+            summary = "Get all users pageable",
+            description = "Retrieves a list of all currently active users."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of active users retrieved successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error"
+            )
+    })
+    @GetMapping(path = "/paged", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PageResponseDTO<UserResponseDTO>> getUsersPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        log.debug("Retrieving users pageable — page={}, size={}", page, size);
+
+        PageResponseDTO<UserResponseDTO> response = userService.getAllUsers(page, size);
         return ResponseEntity.ok(response);
     }
 

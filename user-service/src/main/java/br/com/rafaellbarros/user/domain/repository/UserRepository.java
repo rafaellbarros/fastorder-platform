@@ -1,6 +1,8 @@
 package br.com.rafaellbarros.user.domain.repository;
 
 import br.com.rafaellbarros.user.domain.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +51,14 @@ public interface UserRepository {
      * @return list of all users
      */
     List<User> findAll();
+
+
+    /**
+     * Finds all users pageable
+     *
+     * @return list of all users
+     */
+    Page<User> findAll(Pageable pageable);
 
     /**
      * Finds all active users

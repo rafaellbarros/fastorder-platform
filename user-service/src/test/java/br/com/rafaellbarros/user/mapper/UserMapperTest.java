@@ -3,12 +3,16 @@ package br.com.rafaellbarros.user.mapper;
 import br.com.rafaellbarros.user.domain.model.User;
 import br.com.rafaellbarros.user.dto.request.CreateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
+import br.com.rafaellbarros.user.dto.response.PageResponseDTO;
 import br.com.rafaellbarros.user.dto.response.UserResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -242,5 +246,68 @@ class UserMapperTest {
             // createdAt e updatedAt não devem mudar no mapper
             assertThat(existingUser.getUpdatedAt()).isEqualTo(createdAt);
         }
+    }
+
+    @Test
+    @DisplayName("Should map page content and pagination metadata correctly")
+    void shouldMapPageCorrectly() {
+        // Given
+        User user1 = User.builder()
+                .id(UUID.randomUUID())
+                .name("User 1")
+                .email("user1@example.com")
+                .active(true)
+                .build();
+
+        User user2 = User.builder()
+                .id(UUID.randomUUID())
+                .name("User 2")
+                .email("user2@example.com")
+                .active(false)
+                .build();
+
+        Page<User> page = new PageImpl<>(
+                List.of(user1, user2),
+                PageRequest.of(1, 2), // page number = 1, size = 2
+                5                     // total elements
+        );
+
+        // When
+        PageResponseDTO<UserResponseDTO> response = userMapper.toPageResponseDTO(page);
+
+        // Then
+        assertThat(response).isNotNull();
+
+        // 🔹 Content
+        assertThat(response.getContent())
+                .hasSize(2)
+                .extracting(UserResponseDTO::getName)
+                .containsExactly("User 1", "User 2");
+
+        // 🔹 Pagination metadata
+        assertThat(response.getPage()).isEqualTo(1);
+        assertThat(response.getSize()).isEqualTo(2);
+        assertThat(response.getTotalElements()).isEqualTo(5);
+        assertThat(response.getTotalPages()).isEqualTo(3); // 5 elementos / size 2 = 3 páginas
+
+    }
+
+
+    @Test
+    @DisplayName("Should return empty content when page is empty")
+    void shouldHandleEmptyPage() {
+        // Given
+        Page<User> emptyPage = Page.empty(PageRequest.of(0, 10));
+
+        // When
+        PageResponseDTO<UserResponseDTO> response = userMapper.toPageResponseDTO(emptyPage);
+
+        // Then
+        assertThat(response.getContent()).isEmpty();
+        assertThat(response.getPage()).isEqualTo(0);
+        assertThat(response.getSize()).isEqualTo(10);
+        assertThat(response.getTotalElements()).isZero();
+        assertThat(response.getTotalPages()).isZero();
+
     }
 }

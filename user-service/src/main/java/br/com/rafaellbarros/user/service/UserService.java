@@ -6,17 +6,24 @@ import br.com.rafaellbarros.user.domain.model.User;
 import br.com.rafaellbarros.user.domain.repository.UserRepository;
 import br.com.rafaellbarros.user.dto.request.CreateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
+import br.com.rafaellbarros.user.dto.response.PageResponseDTO;
 import br.com.rafaellbarros.user.dto.response.UserResponseDTO;
 import br.com.rafaellbarros.user.mapper.UserMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -39,6 +46,10 @@ public class UserService {
      * @throws BusinessException if email already exists
      */
     @Transactional
+    @Caching(
+            put = @CachePut(value = "users", key = "#result.id"),
+            evict = @CacheEvict(value = "users:list", allEntries = true)
+    )
     public UserResponseDTO createUser(CreateUserRequestDTO request) {
         log.debug("Creating user with email: {}", request.getEmail());
         validateEmailUniqueness(request.getEmail());
@@ -50,6 +61,9 @@ public class UserService {
         return userMapper.toResponse(savedUser);
     }
 
+
+
+
     /**
      * Retrieves a user by ID
      *
@@ -58,11 +72,28 @@ public class UserService {
      * @throws UserNotFoundException if user not found
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "#id")
     public UserResponseDTO getUserById(UUID id) {
         log.debug("Retrieving user with ID: {}", id);
         User user = getUserEntity(id);
         return userMapper.toResponse(user);
     }
+
+    /**
+     * Retrieves all users pageable
+     *
+     * @return list of user responses
+     */
+    @Cacheable(
+            value = "users:list",
+            key = "'page=' + #page + ':size=' + #size"
+    )
+    public PageResponseDTO<UserResponseDTO> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        Page<User> users = userRepository.findAll(pageable);
+        return userMapper.toPageResponseDTO(users);
+    }
+
 
     /**
      * Retrieves all active users
@@ -97,6 +128,10 @@ public class UserService {
      * @throws UserNotFoundException if user not found
      */
     @Transactional
+    @Caching(
+            put = @CachePut(value = "users", key = "#id"),
+            evict = @CacheEvict(value = "users:list", allEntries = true)
+    )
     public UserResponseDTO updateUser(UUID id, UpdateUserRequestDTO request) {
         log.debug("Updating user with ID: {}", id);
         User user = getUserEntity(id);
@@ -150,6 +185,10 @@ public class UserService {
      * @throws UserNotFoundException if user not found
      */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "users", key = "#id"),
+            @CacheEvict(value = "users:list", allEntries = true)
+    })
     public void deleteUser(UUID id) {
         log.debug("Deleting user with ID: {}", id);
         User user = getUserEntity(id);

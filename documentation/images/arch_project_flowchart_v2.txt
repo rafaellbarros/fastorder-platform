@@ -1,0 +1,83 @@
+flowchart LR
+
+    Client[Client / Frontend]
+
+    subgraph Edge Layer
+        Gateway[API Gateway<br>Spring Cloud Gateway]
+        GatewayCache[(Redis<br>JWT Auth Cache)]
+    end
+
+    subgraph Core Services
+        UserService[User Service<br>Spring Boot]
+        UserCache[(Redis<br>Users Cache)]
+        DB[(User Database)]
+    end
+
+    subgraph Platform Services
+        Eureka[Eureka Discovery Server]
+        Keycloak[Keycloak Auth Server]
+        ObsStarter[Observability Starter<br>Micrometer + OTel + Logback]
+    end
+
+    subgraph Observability Stack
+
+        subgraph Tracing
+            Zipkin[Zipkin]
+        end
+
+        subgraph Metrics
+            Prometheus[Prometheus]
+        end
+
+        subgraph Logs
+            Loki[Loki]
+            Promtail[Promtail]
+        end
+
+        subgraph Visualization
+            Grafana[Grafana Dashboards]
+        end
+    end
+
+    %% ================= TRAFFIC FLOW =================
+    Client -->|HTTP Request| Gateway
+
+    %% JWT CACHE FLOW
+    Gateway -->|Check JWT Cache| GatewayCache
+    GatewayCache -- HIT --> Gateway
+    GatewayCache -- MISS -->|Validate Token| Keycloak
+    Gateway -->|Store Auth in Cache| GatewayCache
+
+    %% ROUTING
+    Gateway -->|lb://user-service| UserService
+
+    %% USERS CACHE FLOW
+    UserService -->|Check users:list cache| UserCache
+    UserCache -- HIT --> UserService
+    UserCache -- MISS --> DB
+    DB --> UserService
+    UserService -->|Store PageResponseDTO in cache| UserCache
+
+    %% SERVICE DISCOVERY
+    Gateway --> Eureka
+    UserService --> Eureka
+
+    %% OBS STARTER
+    Gateway --> ObsStarter
+    UserService --> ObsStarter
+
+    %% TRACING
+    ObsStarter -->|Traces (OTel)| Zipkin
+
+    %% METRICS
+    ObsStarter -->|/actuator/prometheus| Prometheus
+
+    %% LOG FLOW
+    Gateway -->|Logs| Promtail
+    UserService -->|Logs| Promtail
+    Promtail --> Loki
+
+    %% DASHBOARDS
+    Grafana --> Prometheus
+    Grafana --> Loki
+    Grafana --> Zipkin

@@ -6,6 +6,7 @@ import br.com.rafaellbarros.user.domain.model.User;
 import br.com.rafaellbarros.user.domain.repository.UserRepository;
 import br.com.rafaellbarros.user.dto.request.CreateUserRequestDTO;
 import br.com.rafaellbarros.user.dto.request.UpdateUserRequestDTO;
+import br.com.rafaellbarros.user.dto.response.PageResponseDTO;
 import br.com.rafaellbarros.user.dto.response.UserResponseDTO;
 import br.com.rafaellbarros.user.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,10 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,6 +55,9 @@ class UserServiceTest {
 
     @Captor
     private ArgumentCaptor<User> userCaptor;
+
+    @Captor
+    ArgumentCaptor<Pageable> pageableCaptor;
 
     private UUID userId;
     private User user;
@@ -466,5 +474,84 @@ class UserServiceTest {
                 .isInstanceOf(UserNotFoundException.class);
 
         then(userRepository).should(never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("Should call repository with correct pageable and return mapped response")
+    void shouldGetUsersPagedSuccessfully() {
+        // Given
+        int page = 2;
+        int size = 5;
+
+        Page<User> userPage = new PageImpl<>(List.of(user));
+        PageResponseDTO<UserResponseDTO> expectedResponse =
+                new PageResponseDTO<>(List.of(userResponseDTO), 2, 5, 1, 1, true);
+
+        given(userRepository.findAll(any(Pageable.class))).willReturn(userPage);
+        given(userMapper.toPageResponseDTO(userPage)).willReturn(expectedResponse);
+
+        // When
+        PageResponseDTO<UserResponseDTO> result = userService.getAllUsers(page, size);
+
+        // Then
+        assertThat(result).isEqualTo(expectedResponse);
+
+        // 🔥 VERIFICAÇÃO CRÍTICA: Pageable correto
+        then(userRepository).should().findAll(pageableCaptor.capture());
+
+        Pageable captured = pageableCaptor.getValue();
+        assertThat(captured.getPageNumber()).isEqualTo(page);
+        assertThat(captured.getPageSize()).isEqualTo(size);
+
+        Sort.Order order = captured.getSort().getOrderFor("id");
+        assertThat(order).isNotNull();
+        assertThat(order.getDirection()).isEqualTo(Sort.Direction.ASC);
+
+        // Mapper deve ser chamado com a Page retornada
+        then(userMapper).should().toPageResponseDTO(userPage);
+    }
+
+    @Test
+    @DisplayName("Should return empty page response when repository returns empty page")
+    void shouldReturnEmptyPage() {
+        // Given
+        int page = 0;
+        int size = 10;
+
+        Page<User> emptyPage = Page.empty();
+        PageResponseDTO<UserResponseDTO> emptyResponse =
+                new PageResponseDTO<>(List.of(), 0, 10, 0, 0, true);
+
+        given(userRepository.findAll(any(Pageable.class))).willReturn(emptyPage);
+        given(userMapper.toPageResponseDTO(emptyPage)).willReturn(emptyResponse);
+
+        // When
+        PageResponseDTO<UserResponseDTO> result = userService.getAllUsers(page, size);
+
+        // Then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+
+        then(userMapper).should().toPageResponseDTO(emptyPage);
+    }
+
+    @Test
+    @DisplayName("Should always sort by id ascending")
+    void shouldAlwaysSortByIdAscending() {
+        // Given
+        given(userRepository.findAll(any(Pageable.class)))
+                .willReturn(Page.empty());
+        given(userMapper.toPageResponseDTO(any()))
+                .willReturn(new PageResponseDTO<>(List.of(), 0, 0, 0, 0, true));
+
+        // When
+        userService.getAllUsers(0, 20);
+
+        // Then
+        then(userRepository).should().findAll(pageableCaptor.capture());
+        Sort.Order order = pageableCaptor.getValue().getSort().getOrderFor("id");
+
+        assertThat(order).isNotNull();
+        assertThat(order.isAscending()).isTrue();
     }
 }
