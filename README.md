@@ -8,6 +8,7 @@
 ![Architecture](https://img.shields.io/badge/Architecture-Microservices-blueviolet)
 ![Security](https://img.shields.io/badge/Security-OAuth2%20JWT-red)
 ![Cache](https://img.shields.io/badge/Cache-Redis-critical)
+![Resilience](https://img.shields.io/badge/Resilience-CircuitBreaker-orange)
 
 ---
 
@@ -15,15 +16,16 @@
 
 A **FastOrder Platform** é uma arquitetura de microsserviços **cloud-native**, baseada em **Spring Boot 3 / Java 21**, projetada com foco em:
 
-* Escalabilidade
+* Escalabilidade horizontal
 * Segurança OAuth2/JWT
 * Observabilidade ponta a ponta
 * Padronização de erros
 * Logging estruturado
 * **Cache distribuído de alta performance**
+* **Resiliência automática contra falhas**
 * Boas práticas de design (DDD + Clean Architecture)
 
-A plataforma utiliza **Gateway, serviços de domínio, service discovery, autenticação centralizada e Redis como camada de aceleração**.
+A plataforma utiliza **Gateway, serviços de domínio, service discovery, autenticação centralizada, Redis como camada de aceleração e Circuit Breaker para tolerância a falhas**.
 
 ---
 
@@ -31,7 +33,7 @@ A plataforma utiliza **Gateway, serviços de domínio, service discovery, autent
 
 | Módulo                    | Responsabilidade                                      |
 | ------------------------- | ----------------------------------------------------- |
-| **gateway**               | API Gateway reativo + cache de autenticação JWT       |
+| **gateway**               | API Gateway reativo + cache JWT + Circuit Breaker     |
 | **user-service**          | Microsserviço de usuários + cache de consultas        |
 | **discovery-server**      | Eureka Service Discovery                              |
 | **observability-starter** | Auto-configuração de logging, métricas e tracing      |
@@ -41,32 +43,31 @@ A plataforma utiliza **Gateway, serviços de domínio, service discovery, autent
 
 # 🏗 Arquitetura Atualizada
 
-### 🔥 Agora com Edge Cache + Domain Cache
+### 🔥 Edge Cache + Domain Cache + Resilience Layer
 
-![Arch Project](./documentation/images/arch_project_v2.png)
-
----
-
-## 🎯 O que o novo desenho adiciona
-
-| Camada                   | Papel                                        |
-| ------------------------ | -------------------------------------------- |
-| **Redis (Gateway)**      | Cache de autenticação JWT                    |
-| **Redis (User Service)** | Cache de resultados paginados                |
-| **DB**                   | Source of truth                              |
-| **Keycloak**             | Validação de tokens apenas quando necessário |
+![Arch Project](./documentation/images/arch_project_v3.png)
 
 ---
 
-# ⚡ Nova Camada de Cache Distribuído
+## 🎯 O que a nova arquitetura adiciona
 
-A plataforma agora utiliza **Redis como camada de aceleração de leitura e autenticação**.
+| Camada                        | Papel                                           |
+| ----------------------------- | ----------------------------------------------- |
+| **Redis (Gateway)**           | Cache de autenticação JWT                       |
+| **Redis (User Service)**      | Cache de respostas paginadas                    |
+| **Circuit Breaker (Gateway)** | Proteção contra falhas de microsserviços        |
+| **Fallback Controller**       | Resposta controlada quando um serviço está down |
+| **Keycloak**                  | Validação de tokens somente quando necessário   |
+
+---
+
+# ⚡ Camada de Cache Distribuído
+
+A plataforma utiliza **Redis como camada de aceleração de leitura e autenticação**.
 
 ## 1️⃣ Cache de Autenticação no Gateway
 
-Evita validação remota repetida do JWT.
-
-### Fluxo
+Evita validações remotas repetidas do JWT.
 
 ```
 Request → Gateway
@@ -86,30 +87,118 @@ Token existe no cache?
 
 ## 2️⃣ Cache de Lista de Usuários
 
-Cacheia respostas paginadas (`PageResponseDTO<UserResponseDTO>`).
+Cacheia respostas paginadas.
 
 | Cache        | TTL    | Conteúdo                |
 | ------------ | ------ | ----------------------- |
 | `users:list` | 2 min  | Página de usuários      |
 | `auth:jwt`   | 10 min | Autenticação convertida |
 
-### Estratégia aplicada
+---
 
-* Cache armazena **DTOs**, nunca `PageImpl`
-* Serialização JSON tipada
-* TTL por criticidade
-* Redis como camada L2
+# 🛡 Camada de Resiliência (Circuit Breaker)
+
+O **Spring Cloud Gateway** agora protege todos os serviços com **Resilience4j**.
+
+## 🎯 Objetivo
+
+Evitar que falhas em um microsserviço:
+
+* derrubem o gateway
+* causem efeito cascata
+* gerem timeout em massa
+* afetem a experiência do usuário
+
+---
+
+## 🌐 Circuit Breaker Global
+
+Configurado como **filtro padrão do gateway**, protegendo qualquer serviço registrado no Eureka.
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+          predicates:
+            - name: Path
+              args:
+                pattern: "'/'+serviceId+'/**'"
+          filters:
+            - name: RewritePath
+              args:
+                regexp: "'/'+serviceId+'/(?<remaining>.*)'"
+                replacement: "'/${remaining}'"
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 5s
+      default-filters:
+        - name: CircuitBreaker
+          args:
+            name: globalCB
+            fallbackUri: forward:/fallback/global
+```
+
+---
+
+## ⚙ Configuração Resilience4j
+
+```yaml
+resilience4j:
+  circuitbreaker:
+    instances:
+      globalCB:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+  timelimiter:
+    instances:
+      globalCB:
+        timeoutDuration: 3s
+```
+
+---
+
+## 🚨 Fallback Inteligente
+
+Quando um serviço está fora do ar:
+
+```json
+{
+  "timestamp": "2026-01-31T03:24:41Z",
+  "status": 503,
+  "error": "SERVICE_UNAVAILABLE",
+  "message": "Service temporarily unavailable. Please try again later.",
+  "service": "user-service",
+  "uriPath": "/v1/users/paged"
+}
+```
+
+O gateway identifica automaticamente:
+
+* qual serviço falhou
+* qual rota foi chamada
+* qual path original o cliente tentou acessar
 
 ---
 
 # 🧠 Benefícios Arquiteturais
 
-| Antes                   | Agora                      |
-| ----------------------- | -------------------------- |
-| JWT validado sempre     | JWT validado 1x e cacheado |
-| DB consultado sempre    | Leituras servidas do Redis |
-| Latência I/O bound      | Sistema CPU bound          |
-| Escalabilidade limitada | Escala horizontalmente     |
+| Antes                   | Agora                                |
+| ----------------------- | ------------------------------------ |
+| JWT validado sempre     | JWT validado 1x e cacheado           |
+| DB consultado sempre    | Leituras servidas do Redis           |
+| Serviço down → erro 500 | Serviço down → fallback controlado   |
+| Latência I/O bound      | Sistema CPU bound                    |
+| Escalabilidade limitada | Escala horizontalmente               |
+| Falhas causam cascata   | Falhas isoladas pelo Circuit Breaker |
 
 ---
 
@@ -125,10 +214,6 @@ Agora inclui:
 
 # 🔐 Segurança
 
-Todos os serviços são **OAuth2 Resource Server**.
-
-Agora com:
-
 ✔ Validação JWT
 ✔ Cache de autenticação
 ✔ Conversão de roles Keycloak
@@ -138,7 +223,7 @@ Agora com:
 
 # ❤️ Observabilidade
 
-Mesmo com cache, toda telemetria continua:
+Mesmo com cache e fallback:
 
 | Tipo       | Ferramenta |
 | ---------- | ---------- |
@@ -149,9 +234,7 @@ Mesmo com cache, toda telemetria continua:
 
 ---
 
-# 🐳 Infraestrutura Local Atualizada
-
-Agora inclui Redis:
+# 🐳 Infraestrutura Local
 
 | Serviço    | Porta |
 | ---------- | ----- |
@@ -166,18 +249,18 @@ Agora inclui Redis:
 
 # 📈 Evolução recente
 
-| Feature                          | Status |
-| -------------------------------- | ------ |
-| CRUD de usuários                 | ✅      |
-| Swagger customizado              | ✅      |
-| Tratamento global de erros       | ✅      |
-| Validação amigável               | ✅      |
-| Logging estruturado              | ✅      |
-| Testes automatizados             | ✅      |
-| Observability Starter            | ✅      |
-| **Cache Redis distribuído**      | ✅      |
-| **JWT Auth Cache no Gateway**    | ✅      |
-| **Cache de consultas paginadas** | ✅      |
-
-
-
+| Feature                               | Status |
+| ------------------------------------- | ------ |
+| CRUD de usuários                      | ✅      |
+| Swagger customizado                   | ✅      |
+| Tratamento global de erros            | ✅      |
+| Validação amigável                    | ✅      |
+| Logging estruturado                   | ✅      |
+| Testes automatizados                  | ✅      |
+| Observability Starter                 | ✅      |
+| Cache Redis distribuído               | ✅      |
+| JWT Auth Cache no Gateway             | ✅      |
+| Cache de consultas paginadas          | ✅      |
+| **Circuit Breaker Global**            | ✅      |
+| **Fallback automático por serviço**   | ✅      |
+| **Proteção contra falhas em cascata** | ✅      |

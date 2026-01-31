@@ -55,3 +55,7 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+    should-unregister-on-shutdown: false
+  instance:
+    # Mantém o registro por 1 hora após a queda
+    lease-expiration-duration-in-seconds: 3600

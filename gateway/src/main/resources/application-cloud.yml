@@ -7,7 +7,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8085/realms/fastorder
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
 
   cloud:
     gateway:
@@ -15,16 +15,40 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+          predicates:
+            - name: Path
+              args:
+                pattern: "'/'+serviceId+'/**'"
+          filters:
+            - name: RewritePath
+              args:
+                regexp: "'/'+serviceId+'/(?<remaining>.*)'"
+                replacement: "'/${remaining}'"
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 5s
+      default-filters:
+        - name: CircuitBreaker
+          args:
+            name: globalCB
+            fallbackUri: forward:/fallback/global
+
+
+  cache:
+    type: redis
 
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD:}
-
+      timeout: 2s
 
 eureka:
   client:
     enabled: true
+    registry-fetch-interval-seconds: 600
+    eureka-service-url-poll-interval-seconds: 600
+    cache-refresh-executor-exponential-backoff-bound: 10
   instance:
     prefer-ip-address: true

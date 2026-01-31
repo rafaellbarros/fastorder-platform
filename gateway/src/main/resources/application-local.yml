@@ -15,6 +15,23 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+          predicates:
+            - name: Path
+              args:
+                pattern: "'/'+serviceId+'/**'"
+          filters:
+            - name: RewritePath
+              args:
+                regexp: "'/'+serviceId+'/(?<remaining>.*)'"
+                replacement: "'/${remaining}'"
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 5s
+      default-filters:
+        - name: CircuitBreaker
+          args:
+            name: globalCB
+            fallbackUri: forward:/fallback/global
 
   cache:
     type: redis
@@ -26,5 +43,9 @@ spring:
 eureka:
   client:
     enabled: true #false desabilita local
+    registry-fetch-interval-seconds: 600 # 10 minutos
+    # Cache do lado do cliente para evitar consultas excessivas
+    eureka-service-url-poll-interval-seconds: 600
+    cache-refresh-executor-exponential-backoff-bound: 10
   instance:
     prefer-ip-address: true

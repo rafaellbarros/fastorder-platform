@@ -5,12 +5,20 @@ spring:
   application:
     name: discovery-server
 
-  output:
-    ansi:
-      enabled: ALWAYS
-
 eureka:
+  instance:
+    hostname: localhost
   client:
     register-with-eureka: false
     fetch-registry: false
+  server:
+    # 1. Habilita a autopreservação (evita deletar instâncias se houver falhas de rede/queda)
+    enable-self-preservation: true
 
+    # 2. Define o limite para entrar em autopreservação (Ex: 0.85 significa que se
+    # menos de 85% das renovações chegarem, o servidor para de expirar instâncias)
+    renewal-percent-threshold: 0.85
+
+    # 3. Frequência com que o servidor limpa instâncias expiradas (em ms)
+    # Aumentar esse tempo ajuda a manter instâncias "mortas" por mais tempo
+    eviction-interval-timer-in-ms: 60000

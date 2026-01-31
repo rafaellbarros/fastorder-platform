@@ -86,12 +86,12 @@ class UserControllerTest {
                 .willReturn(userResponseDTO);
 
         // When & Then
-        mockMvc.perform(post("/api/v1/users")
+        mockMvc.perform(post("/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location",
-                        containsString("/api/v1/users/" + userId)))
+                        containsString("/v1/users/" + userId)))
                 .andExpect(jsonPath("$.id").value(userId.toString()))
                 .andExpect(jsonPath("$.name").value("John Doe"))
                 .andExpect(jsonPath("$.email").value("john.doe@example.com"));
@@ -100,13 +100,13 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/{id} - Should return user when found")
+    @DisplayName("GET /v1/users/{id} - Should return user when found")
     void shouldReturnUserWhenFound() throws Exception {
         // Given
         given(userService.getUserById(userId)).willReturn(userResponseDTO);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/{id}", userId.toString()))
+        mockMvc.perform(get("/v1/users/{id}", userId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
                 .andExpect(jsonPath("$.name").value("John Doe"))
@@ -116,14 +116,14 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/users - Should return all users")
+    @DisplayName("GET /v1/users - Should return all users")
     void shouldReturnAllUsers() throws Exception {
         // Given
         List<UserResponseDTO> users = List.of(userResponseDTO);
         given(userService.getAllUsers()).willReturn(users);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users"))
+        mockMvc.perform(get("/v1/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id").value(userId.toString()))
@@ -133,13 +133,13 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/all - Should return all users including inactive")
+    @DisplayName("GET /v1/users/all - Should return all users including inactive")
     void shouldReturnAllUsersIncludingInactive() throws Exception {
         List<UserResponseDTO> users = List.of(userResponseDTO);
 
         given(userService.getAllUsersWithInactive()).willReturn(users);
 
-        mockMvc.perform(get("/api/v1/users/all"))
+        mockMvc.perform(get("/v1/users/all"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id").value(userId.toString()));
@@ -148,7 +148,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/v1/users/{id} - Should update user successfully")
+    @DisplayName("PUT /v1/users/{id} - Should update user successfully")
     void shouldUpdateUserSuccessfully() throws Exception {
         // Given
         UpdateUserRequestDTO request = UpdateUserRequestDTO.builder()
@@ -166,7 +166,7 @@ class UserControllerTest {
                 .willReturn(updatedResponse);
 
         // When & Then
-        mockMvc.perform(put("/api/v1/users/{id}", userId.toString())
+        mockMvc.perform(put("/v1/users/{id}", userId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -177,17 +177,17 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/v1/users/{id} - Should delete user and return 204")
+    @DisplayName("DELETE /v1/users/{id} - Should delete user and return 204")
     void shouldDeleteUser() throws Exception {
         // When & Then
-        mockMvc.perform(delete("/api/v1/users/{id}", userId.toString()))
+        mockMvc.perform(delete("/v1/users/{id}", userId.toString()))
                 .andExpect(status().isNoContent());
 
         verify(userService).deleteUser(userId);
     }
 
     @Test
-    @DisplayName("POST /api/v1/users - Should return 400 when request is invalid")
+    @DisplayName("POST /v1/users - Should return 400 when request is invalid")
     void shouldReturn400WhenInvalidRequest() throws Exception {
         // Given
         CreateUserRequestDTO invalidRequest = CreateUserRequestDTO.builder()
@@ -197,7 +197,7 @@ class UserControllerTest {
 
 
         // When & Then
-        mockMvc.perform(post("/api/v1/users")
+        mockMvc.perform(post("/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -207,20 +207,20 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/{id} - Should return 404 when user not found")
+    @DisplayName("GET /v1/users/{id} - Should return 404 when user not found")
     void shouldReturn404WhenUserNotFound() throws Exception {
         // Given
         given(userService.getUserById(userId))
                 .willThrow(new UserNotFoundException(userId));
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/{id}", userId.toString()))
+        mockMvc.perform(get("/v1/users/{id}", userId.toString()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
-    @DisplayName("POST /api/v1/users - Should return 409 when email already exists")
+    @DisplayName("POST /v1/users - Should return 409 when email already exists")
     void shouldReturn409WhenEmailAlreadyExists() throws Exception {
         // Given
         CreateUserRequestDTO request = CreateUserRequestDTO.builder()
@@ -232,7 +232,7 @@ class UserControllerTest {
                 .willThrow(new BusinessException("Email already registered: existing@example.com"));
 
         // When & Then
-        mockMvc.perform(post("/api/v1/users")
+        mockMvc.perform(post("/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -240,7 +240,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/v1/users/{id} - Should return 400 when update request is invalid")
+    @DisplayName("PUT /v1/users/{id} - Should return 400 when update request is invalid")
     void shouldReturn400WhenInvalidUpdateRequest() throws Exception {
         // Given
         UpdateUserRequestDTO invalidRequest = UpdateUserRequestDTO.builder()
@@ -249,7 +249,7 @@ class UserControllerTest {
                 .build();
 
         // When & Then
-        mockMvc.perform(put("/api/v1/users/{id}", userId.toString())
+        mockMvc.perform(put("/v1/users/{id}", userId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -257,19 +257,19 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/{id} - Should return 400 when ID is invalid")
+    @DisplayName("GET /v1/users/{id} - Should return 400 when ID is invalid")
     void shouldReturn400WhenInvalidIdFormat() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/v1/users/{id}", "invalid-uuid"))
+        mockMvc.perform(get("/v1/users/{id}", "invalid-uuid"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
-    @DisplayName("PATCH /api/v1/users/{id}/deactivate - Should return 204")
+    @DisplayName("PATCH /v1/users/{id}/deactivate - Should return 204")
     void shouldDeactivateUser() throws Exception {
 
-        mockMvc.perform(patch("/api/v1/users/{id}/deactivate", userId))
+        mockMvc.perform(patch("/v1/users/{id}/deactivate", userId))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
@@ -277,10 +277,10 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /api/v1/users/{id}/reactivate - Should return 204")
+    @DisplayName("PATCH /v1/users/{id}/reactivate - Should return 204")
     void shouldReactivateUser() throws Exception {
 
-        mockMvc.perform(patch("/api/v1/users/{id}/reactivate", userId))
+        mockMvc.perform(patch("/v1/users/{id}/reactivate", userId))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
@@ -291,19 +291,19 @@ class UserControllerTest {
 
 
     @Test
-    @DisplayName("GET /api/v1/users/all - Should return 500 on unexpected error")
+    @DisplayName("GET /v1/users/all - Should return 500 on unexpected error")
     void shouldReturn500WhenGetAllWithInactiveFails() throws Exception {
 
         given(userService.getAllUsersWithInactive())
                 .willThrow(new RuntimeException("Unexpected error"));
 
-        mockMvc.perform(get("/api/v1/users/all"))
+        mockMvc.perform(get("/v1/users/all"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/paged - Should use default page=0 size=10")
+    @DisplayName("GET /v1/users/paged - Should use default page=0 size=10")
     void shouldUseDefaultPagination() throws Exception {
 
         PageResponseDTO<UserResponseDTO> pageResponse =
@@ -311,7 +311,7 @@ class UserControllerTest {
 
         given(userService.getAllUsers(0, 10)).willReturn(pageResponse);
 
-        mockMvc.perform(get("/api/v1/users/paged"))
+        mockMvc.perform(get("/v1/users/paged"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.page").value(0))
@@ -324,7 +324,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/paged - Should use provided page and size")
+    @DisplayName("GET /v1/users/paged - Should use provided page and size")
     void shouldUseProvidedPagination() throws Exception {
 
         PageResponseDTO<UserResponseDTO> pageResponse =
@@ -332,7 +332,7 @@ class UserControllerTest {
 
         given(userService.getAllUsers(2, 5)).willReturn(pageResponse);
 
-        mockMvc.perform(get("/api/v1/users/paged")
+        mockMvc.perform(get("/v1/users/paged")
                         .param("page", "2")
                         .param("size", "5"))
                 .andExpect(status().isOk())
@@ -347,7 +347,7 @@ class UserControllerTest {
 
 
     @Test
-    @DisplayName("GET /api/v1/users/paged - Should return empty page")
+    @DisplayName("GET /v1/users/paged - Should return empty page")
     void shouldReturnEmptyPage() throws Exception {
 
         PageResponseDTO<UserResponseDTO> emptyPage =
@@ -355,7 +355,7 @@ class UserControllerTest {
 
         given(userService.getAllUsers(0, 10)).willReturn(emptyPage);
 
-        mockMvc.perform(get("/api/v1/users/paged"))
+        mockMvc.perform(get("/v1/users/paged"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.totalElements").value(0))
@@ -364,22 +364,22 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/paged - Should return 400 when page is invalid")
+    @DisplayName("GET /v1/users/paged - Should return 400 when page is invalid")
     void shouldReturn400WhenPageInvalid() throws Exception {
 
-        mockMvc.perform(get("/api/v1/users/paged")
+        mockMvc.perform(get("/v1/users/paged")
                         .param("page", "abc"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("GET /api/v1/users/paged - Should return 500 on unexpected error")
+    @DisplayName("GET /v1/users/paged - Should return 500 on unexpected error")
     void shouldReturn500WhenPagedFails() throws Exception {
 
         given(userService.getAllUsers(anyInt(), anyInt()))
                 .willThrow(new RuntimeException("DB down"));
 
-        mockMvc.perform(get("/api/v1/users/paged"))
+        mockMvc.perform(get("/v1/users/paged"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").exists());
     }

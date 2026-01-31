@@ -30,10 +30,26 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+    gateway:
+      enabled: true
 
-# =========================================================
-# 📝 LOGGING
-# =========================================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      globalCB:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        registerHealthIndicator: true
+
+  timelimiter:
+    instances:
+      globalCB:
+        timeoutDuration: 3s
+
 logging:
   level:
     root: INFO
