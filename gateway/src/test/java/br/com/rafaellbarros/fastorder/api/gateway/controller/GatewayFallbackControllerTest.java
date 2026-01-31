@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GatewayFallbackControllerTest {
 
@@ -153,4 +155,39 @@ public class GatewayFallbackControllerTest {
                 })
                 .verifyComplete();
     }
+
+
+    @Test
+    void shouldHandleNullRouteIdAndOriginalPathPresent() {
+        // Arrange
+        MockServerHttpRequest request = MockServerHttpRequest.get("/api/test").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        // Mock Route with null id
+        Route route = mock(Route.class);
+        when(route.getId()).thenReturn(null);
+
+        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
+        exchange.getAttributes().put(
+                ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR,
+                Set.of(URI.create("http://localhost:8080/api/test"))
+        );
+
+        // Act
+        Mono<ResponseEntity<Map<String, Object>>> result = controller.globalFallback(exchange);
+
+        // Assert
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+
+                    Map<String, Object> body = response.getBody();
+                    assertThat(body).isNotNull();
+
+                    assertThat(body.get("service")).isEqualTo("unknown-service");
+                    assertThat(body.get("uriPath")).isEqualTo("/api/test");
+                })
+                .verifyComplete();
+    }
+
 }
