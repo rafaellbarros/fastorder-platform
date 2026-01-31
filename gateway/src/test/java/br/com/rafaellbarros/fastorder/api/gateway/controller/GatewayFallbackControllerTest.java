@@ -190,4 +190,34 @@ public class GatewayFallbackControllerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldReturnUnknownPath_whenOriginalUrisIsEmpty() {
+        // Arrange
+        MockServerHttpRequest request = MockServerHttpRequest.get("/empty").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        Route route = Route.async()
+                .id("route_empty-service")
+                .uri(URI.create("lb://empty-service"))
+                .predicate(e -> true)
+                .build();
+
+        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
+        exchange.getAttributes().put(
+                ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR,
+                Set.of() // empty set
+        );
+
+        // Act
+        Mono<ResponseEntity<Map<String, Object>>> result = controller.globalFallback(exchange);
+
+        // Assert
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    Map<String, Object> body = response.getBody();
+                    assertThat(body.get("uriPath")).isEqualTo("unknown-path");
+                })
+                .verifyComplete();
+    }
+
 }
