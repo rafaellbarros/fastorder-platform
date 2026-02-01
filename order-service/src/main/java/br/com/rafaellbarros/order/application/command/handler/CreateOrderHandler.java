@@ -22,13 +22,12 @@ public class CreateOrderHandler {
 
         OrderAggregate aggregate = new OrderAggregate();
 
-        // 🔥 Domínio decide e gera eventos
         aggregate.createOrder(command.userId(), command.items());
 
         List<DomainEvent> events = aggregate.getUncommittedEvents();
         String aggregateId = events.get(0).getAggregateId();
 
-        return eventStore.saveAll(aggregateId, events)
+        return eventStore.saveAll(aggregateId, 0L, events)
                 .thenMany(producer.publishAll(events))
                 .then(Mono.fromRunnable(aggregate::clearEvents))
                 .thenReturn(aggregateId);

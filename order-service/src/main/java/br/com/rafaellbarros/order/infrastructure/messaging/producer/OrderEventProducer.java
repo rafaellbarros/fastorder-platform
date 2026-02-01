@@ -18,6 +18,7 @@ public class OrderEventProducer {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public Flux<Void> publishAll(List<DomainEvent> events) {
+        log.info("Publishing order events...");
         return Flux.fromIterable(events)
                 .flatMap(event ->
                         Mono.fromFuture(kafkaTemplate.send("order-events", event.getAggregateId(), event))

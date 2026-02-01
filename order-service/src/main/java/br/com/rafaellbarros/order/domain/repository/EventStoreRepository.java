@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface EventStoreRepository {
 
-    Mono<Void> saveAll(String aggregateId, List<DomainEvent> events);
+    Mono<Void> saveAll(String aggregateId, Long expectedVersion, List<DomainEvent> events);
 
     Flux<DomainEvent> findByAggregateId(String aggregateId);
 }

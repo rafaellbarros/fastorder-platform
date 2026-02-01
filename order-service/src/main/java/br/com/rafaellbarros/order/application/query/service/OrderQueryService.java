@@ -16,22 +16,33 @@ public class OrderQueryService {
     private final OrderViewRepository repository;
 
     public Mono<OrderView> findById(String orderId) {
+
         return repository.findById(orderId)
-                .doOnSuccess(OrderQueryService::successFound)
-                .doOnError(OrderQueryService::errorFinding);
+                .doOnNext(order ->
+                        log.info("Order {} found", order.getOrderId())
+                )
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.warn("Order {} not found", orderId);
+                    return Mono.empty();
+                }))
+                .doOnError(e ->
+                        log.error("Error finding order {}", orderId, e)
+                );
     }
 
     public Flux<OrderView> findByUser(String userId) {
+
         return repository.findByUserId(userId)
-                .doOnNext(OrderQueryService::successFound)
-                .doOnError(OrderQueryService::errorFinding);
+                .doOnNext(order ->
+                        log.info("Order {} found for user {}", order.getOrderId(), userId)
+                )
+                .switchIfEmpty(Flux.defer(() -> {
+                    log.warn("No orders found for user {}", userId);
+                    return Flux.empty();
+                }))
+                .doOnError(e ->
+                        log.error("Error finding orders for user {}", userId, e)
+                );
     }
 
-    private static void successFound(OrderView r) {
-        log.info("Order {} found", r.getOrderId());
-    }
-
-    private static void errorFinding(Throwable e) {
-        log.error("Error finding order {}", e.getMessage());
-    }
 }

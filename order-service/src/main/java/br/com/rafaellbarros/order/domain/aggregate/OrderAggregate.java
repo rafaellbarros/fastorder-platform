@@ -3,6 +3,7 @@ package br.com.rafaellbarros.order.domain.aggregate;
 import br.com.rafaellbarros.order.domain.event.DomainEvent;
 import br.com.rafaellbarros.order.domain.event.OrderCreatedEvent;
 import br.com.rafaellbarros.order.domain.valueobject.OrderItem;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -19,7 +20,9 @@ public class OrderAggregate {
     private BigDecimal totalAmount;
     private Instant createdAt;
     private Instant updatedAt;
+    private Long version = 0L;
 
+    @Getter
     private final List<DomainEvent> uncommittedEvents = new ArrayList<>();
 
     public void createOrder(String userId, List<OrderItem> items) {
@@ -54,13 +57,7 @@ public class OrderAggregate {
         this.totalAmount = event.getTotalAmount();
         this.createdAt = event.getCreatedAt();
         this.updatedAt = event.getOccurredAt();
-    }
-
-    // ==============================
-    // EVENT ACCESSOR
-    // ==============================
-    public List<DomainEvent> getUncommittedEvents() {
-        return uncommittedEvents;
+        this.version++;
     }
 
     public void clearEvents() {

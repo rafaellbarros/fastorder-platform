@@ -22,15 +22,11 @@ public class OrderView {
     private String orderId;
 
     private String userId;
-
     private String status;
-
+    private BigDecimal totalAmount;
     private List<ItemView> items;
 
-    private BigDecimal totalAmount;
-
     private Instant createdAt;
-
     private Instant updatedAt;
 
     @Data

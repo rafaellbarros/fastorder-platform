@@ -1,6 +1,7 @@
 package br.com.rafaellbarros.order.infrastructure.persistence.eventstore;
 
 import br.com.rafaellbarros.order.domain.event.DomainEvent;
+import br.com.rafaellbarros.order.domain.exception.ConcurrencyException;
 import br.com.rafaellbarros.order.domain.repository.EventStoreRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.DuplicateKeyException;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,27 +26,33 @@ public class MongoEventStoreRepository implements EventStoreRepository {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<Void> saveAll(String aggregateId, List<DomainEvent> events) {
+    public Mono<Void> saveAll(String aggregateId, Long expectedVersion, List<DomainEvent> events) {
 
         return findLastVersion(aggregateId)
                 .flatMapMany(lastVersion -> {
 
-                    AtomicLong version = new AtomicLong(lastVersion);
+                    if (!lastVersion.equals(expectedVersion)) {
+                        return Mono.error(new ConcurrencyException(
+                                "Version conflict. Expected: " + expectedVersion + " but was: " + lastVersion));
+                    }
+
+                    AtomicLong nextVersion = new AtomicLong(lastVersion + 1);
 
                     return Flux.fromIterable(events)
                             .map(event -> EventDocument.builder()
                                     .id(UUID.randomUUID().toString())
+                                    .eventId(event.getEventId())
                                     .aggregateId(aggregateId)
                                     .aggregateType(event.getAggregateType())
                                     .eventType(event.getEventType())
-                                    .version(version.incrementAndGet())
+                                    .version(nextVersion.getAndIncrement())
                                     .timestamp(event.getOccurredAt())
                                     .payload(serialize(event))
                                     .build());
                 })
                 .concatMap(mongoTemplate::insert) // 1 a 1 → respeita ordem
                 .onErrorMap(DuplicateKeyException.class,
-                        e -> new ConcurrentModificationException("Event stream conflict"))
+                        e -> new ConcurrencyException("Duplicate event or version conflict"))
                 .then();
     }
 
