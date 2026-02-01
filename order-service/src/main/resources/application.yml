@@ -1,0 +1,17 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: order-service
+
+  data:
+    mongodb:
+      uri: mongodb://admin:admin123@localhost:27017/orderdb?authSource=admin
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+  output:
+    ansi:
+      enabled: ALWAYS
