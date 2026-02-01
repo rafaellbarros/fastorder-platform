@@ -178,26 +178,43 @@
 						</goals>
 						<configuration>
 							<excludes>
-
-								<!-- Infraestrutura -->
+								<!-- Infraestrutura de configuração -->
 								<exclude>**/config/**</exclude>
-								<exclude>**/security/**</exclude>
-								<exclude>**/filter/**</exclude>
-								<exclude>**/exception/**</exclude>
+								<exclude>**/OpenApiConfig*</exclude>
+								<exclude>**/KafkaProducerConfig*</exclude>
+								<exclude>**/WebClientConfig*</exclude>
+
+								<!-- Aplicação principal e runners -->
 								<exclude>**/*Application*</exclude>
 
-								<!-- Camadas que não medem regra -->
+								<!-- DTOs e Value Objects (sem lógica de negócio) -->
 								<exclude>**/dto/**</exclude>
-								<exclude>**/entity/**</exclude>
-								<exclude>**/domain/model/**</exclude>
+								<exclude>**/valueobject/**</exclude>
+								<exclude>**/api/exception/**</exclude> <!-- Handlers de exceção -->
+
+								<!-- Repositórios e persistência (testar integração separadamente) -->
 								<exclude>**/repository/**</exclude>
 								<exclude>**/persistence/**</exclude>
+								<exclude>**/eventstore/**</exclude>
+								<exclude>**/readmodel/**</exclude>
+
+								<!-- Mappers (geralmente código gerado/boilerplate) -->
 								<exclude>**/mapper/**</exclude>
 
-								<!-- Classes geradas -->
+								<!-- Entidades de persistência -->
+								<exclude>**/entity/**</exclude>
+								<exclude>**/EventDocument*</exclude>
+								<exclude>**/OrderView*</exclude>
+
+								<!-- Classes de modelo/domínio puro (se não tiverem lógica) -->
+								<exclude>**/domain/model/**</exclude>
+								<exclude>**/OrderStatus*</exclude> <!-- Enum sem lógica -->
+								<exclude>**/DomainEvent*</exclude> <!-- Classe base -->
+
+								<!-- Classes geradas automaticamente -->
 								<exclude>**/*MapperImpl*</exclude>
 								<exclude>**/generated/**</exclude>
-
+								<exclude>**/target/**</exclude>
 							</excludes>
 						</configuration>
 					</execution>
