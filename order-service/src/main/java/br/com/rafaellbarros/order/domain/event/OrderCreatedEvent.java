@@ -13,16 +13,29 @@ import java.util.UUID;
 @NoArgsConstructor
 public class OrderCreatedEvent extends DomainEvent {
 
-    private String orderId;
     private String userId;
     private List<OrderItem> items;
-    private BigDecimal total;
+    private BigDecimal totalAmount;
+    private Instant createdAt;
 
-    public OrderCreatedEvent(String orderId, String userId, List<OrderItem> items, BigDecimal total) {
-        super(UUID.randomUUID().toString(), orderId, "Order", "OrderCreatedEvent", 1, Instant.now());
-        this.orderId = orderId;
+    public OrderCreatedEvent(
+            String aggregateId,
+            String userId,
+            List<OrderItem> items,
+            BigDecimal totalAmount,
+            Instant createdAt
+    ) {
+        super(
+                UUID.randomUUID().toString(),
+                aggregateId,
+                "Order",
+                "OrderCreated",
+                Instant.now()
+        );
         this.userId = userId;
         this.items = items;
-        this.total = total;
+        this.totalAmount = totalAmount;
+        this.createdAt = createdAt;
     }
 }
+

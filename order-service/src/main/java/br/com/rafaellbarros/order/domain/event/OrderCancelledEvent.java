@@ -12,8 +12,8 @@ public class OrderCancelledEvent extends DomainEvent {
 
     private String reason;
 
-    public OrderCancelledEvent(String orderId, String reason, Integer version) {
-        super(UUID.randomUUID().toString(), orderId, "Order", "OrderCancelledEvent", version, Instant.now());
+    public OrderCancelledEvent(String orderId, String reason) {
+        super(UUID.randomUUID().toString(), orderId, "Order", "OrderCancelledEvent", Instant.now());
         this.reason = reason;
     }
 }

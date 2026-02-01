@@ -12,8 +12,8 @@ public class OrderPaidEvent extends DomainEvent {
 
     private String paymentId;
 
-    public OrderPaidEvent(String orderId, String paymentId, Integer version) {
-        super(UUID.randomUUID().toString(), orderId, "Order", "OrderPaidEvent", version, Instant.now());
+    public OrderPaidEvent(String orderId, String paymentId) {
+        super(UUID.randomUUID().toString(), orderId, "Order", "OrderPaidEvent", Instant.now());
         this.paymentId = paymentId;
     }
 }

@@ -1,16 +1,21 @@
 package br.com.rafaellbarros.order.infrastructure.persistence.eventstore;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
-@Document("order_events")
+@Document("event_store")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@CompoundIndex(name = "aggregate_version_idx", def = "{'aggregateId':1,'version':1}", unique = true)
 public class EventDocument {
 
     @Id
@@ -19,8 +24,8 @@ public class EventDocument {
     private String aggregateId;
     private String aggregateType;
     private String eventType;
-    private Integer version;
+    private Long version;
     private Instant timestamp;
 
-    private Object payload;
+    private String payload; // JSON
 }

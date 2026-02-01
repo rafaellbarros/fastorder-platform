@@ -1,16 +1,15 @@
 package br.com.rafaellbarros.order.application.command.handler;
 
+import br.com.rafaellbarros.order.domain.aggregate.OrderAggregate;
 import br.com.rafaellbarros.order.domain.command.CreateOrderCommand;
-import br.com.rafaellbarros.order.domain.event.OrderCreatedEvent;
+import br.com.rafaellbarros.order.domain.event.DomainEvent;
 import br.com.rafaellbarros.order.domain.repository.EventStoreRepository;
-import br.com.rafaellbarros.order.domain.valueobject.OrderItem;
 import br.com.rafaellbarros.order.infrastructure.messaging.producer.OrderEventProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-import java.util.UUID;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -21,18 +20,17 @@ public class CreateOrderHandler {
 
     public Mono<String> handle(CreateOrderCommand command) {
 
-        String orderId = UUID.randomUUID().toString();
+        OrderAggregate aggregate = new OrderAggregate();
 
-        BigDecimal total = command.items()
-                .stream()
-                .map(OrderItem::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 🔥 Domínio decide e gera eventos
+        aggregate.createOrder(command.userId(), command.items());
 
-        OrderCreatedEvent event =
-                new OrderCreatedEvent(orderId, command.userId(), command.items(), total);
+        List<DomainEvent> events = aggregate.getUncommittedEvents();
+        String aggregateId = events.get(0).getAggregateId();
 
-        return eventStore.save(event)
-                .then(producer.publish(event))
-                .thenReturn(orderId);
+        return eventStore.saveAll(aggregateId, events)
+                .thenMany(producer.publishAll(events))
+                .then(Mono.fromRunnable(aggregate::clearEvents))
+                .thenReturn(aggregateId);
     }
 }

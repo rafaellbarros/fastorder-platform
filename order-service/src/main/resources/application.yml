@@ -5,12 +5,20 @@ spring:
   application:
     name: order-service
 
+
   data:
     mongodb:
       uri: mongodb://admin:admin123@localhost:27017/orderdb?authSource=admin
 
   kafka:
     bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-projection
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
 
   output:
     ansi:
