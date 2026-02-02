@@ -1,4 +1,4 @@
-package br.com.rafaellbarros.order.api.query.controller;
+package br.com.rafaellbarros.order.api.query;
 
 import br.com.rafaellbarros.order.application.query.service.OrderQueryService;
 import br.com.rafaellbarros.order.infrastructure.persistence.readmodel.OrderView;
