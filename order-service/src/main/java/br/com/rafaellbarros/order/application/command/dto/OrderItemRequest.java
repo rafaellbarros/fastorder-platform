@@ -3,12 +3,16 @@ package br.com.rafaellbarros.order.application.command.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
 @Schema(description = "Item individual de um pedido")
+@AllArgsConstructor
+@NoArgsConstructor
 public class OrderItemRequest {
 
     @NotBlank

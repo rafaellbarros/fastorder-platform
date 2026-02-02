@@ -178,43 +178,36 @@
 						</goals>
 						<configuration>
 							<excludes>
-								<!-- Infraestrutura de configuração -->
-								<exclude>**/config/**</exclude>
-								<exclude>**/OpenApiConfig*</exclude>
-								<exclude>**/KafkaProducerConfig*</exclude>
-								<exclude>**/WebClientConfig*</exclude>
-
 								<!-- Aplicação principal e runners -->
 								<exclude>**/*Application*</exclude>
 
-								<!-- DTOs e Value Objects (sem lógica de negócio) -->
+								<!-- CONFIGURAÇÃO / INFRA E WIRING -->
+								<exclude>**/config/**</exclude>
+								<exclude>**/infrastructure/config/**</exclude>
+
+								<!-- DTOs / MODELOS DE TRANSPORTE -->
 								<exclude>**/dto/**</exclude>
-								<exclude>**/valueobject/**</exclude>
-								<exclude>**/api/exception/**</exclude> <!-- Handlers de exceção -->
+								<exclude>**/event/**</exclude>
+								<exclude>**/ErrorResponse*</exclude>
 
-								<!-- Repositórios e persistência (testar integração separadamente) -->
-								<exclude>**/repository/**</exclude>
+								<!-- PERSISTÊNCIA (infra técnica) -->
 								<exclude>**/persistence/**</exclude>
-								<exclude>**/eventstore/**</exclude>
-								<exclude>**/readmodel/**</exclude>
+								<exclude>**/*Repository*</exclude>
+								<exclude>**/*Document*</exclude>
+								<exclude>**/*View*</exclude>
 
-								<!-- Mappers (geralmente código gerado/boilerplate) -->
+								<!-- MAPPERS / CÓDIGO GERADO -->
 								<exclude>**/mapper/**</exclude>
-
-								<!-- Entidades de persistência -->
-								<exclude>**/entity/**</exclude>
-								<exclude>**/EventDocument*</exclude>
-								<exclude>**/OrderView*</exclude>
-
-								<!-- Classes de modelo/domínio puro (se não tiverem lógica) -->
-								<exclude>**/domain/model/**</exclude>
-								<exclude>**/OrderStatus*</exclude> <!-- Enum sem lógica -->
-								<exclude>**/DomainEvent*</exclude> <!-- Classe base -->
-
-								<!-- Classes geradas automaticamente -->
 								<exclude>**/*MapperImpl*</exclude>
 								<exclude>**/generated/**</exclude>
-								<exclude>**/target/**</exclude>
+
+								<!-- EXCEÇÕES BASE -->
+								<exclude>**/exception/DomainException*</exclude>
+								<exclude>**/exception/ConcurrencyException*</exclude>
+
+								<!-- PRODUCERS EXTERNOS -->
+								<exclude>**/messaging/producer/**</exclude>
+
 							</excludes>
 						</configuration>
 					</execution>
