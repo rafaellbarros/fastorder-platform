@@ -24,6 +24,6 @@ public class ApiErrorResponseWriter {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         mapper.writeValue(response.getWriter(), error);
-        response.getWriter().flush(); // GARANTE ENVIO COMPLETO
+        response.getWriter().flush();
     }
 }

@@ -198,19 +198,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message(INTERNAL_SERVER_ERROR)
+                .messageDeveloper(ex.getMessage())
                 .path(request.getRequestURI());
-
-        // Only include debug message in non-production environments
-        if (!isProduction()) {
-            errorBuilder.debugMessage(ex.getMessage());
-        }
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBuilder.build());
     }
 
-    private boolean isProduction() {
-        String profile = System.getProperty("spring.profiles.active", "");
-        return profile.contains("prod") || profile.contains("production");
-    }
 }
 

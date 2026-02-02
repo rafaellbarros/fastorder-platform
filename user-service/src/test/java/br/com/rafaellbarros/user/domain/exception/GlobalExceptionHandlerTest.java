@@ -143,39 +143,6 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleGenericException_includesDebugMessage_inNonProduction() {
-        Exception ex = new Exception("Unexpected error");
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURI()).thenReturn("/error");
-
-        // Simulate non-production environment
-        System.setProperty("spring.profiles.active", "dev");
-
-        ResponseEntity<ApiError> response = handler.handleGenericException(ex, request);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Internal server error", response.getBody().getMessage());
-        assertEquals("Unexpected error", response.getBody().getDebugMessage());
-    }
-
-    @Test
-    void handleGenericException_excludesDebugMessage_inProduction() {
-        Exception ex = new Exception("Unexpected error");
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURI()).thenReturn("/error");
-
-        // Simulate production environment
-        System.setProperty("spring.profiles.active", "prod");
-
-        ResponseEntity<ApiError> response = handler.handleGenericException(ex, request);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Internal server error", response.getBody().getMessage());
-        assertNull(response.getBody().getDebugMessage());
-    }
-
-
-    @Test
     void handleHttpMessageNotReadableException_setsMessageFromCause_whenCauseExists() {
         Throwable cause = new RuntimeException("Root cause message");
         HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON", cause);
@@ -188,4 +155,5 @@ class GlobalExceptionHandlerTest {
         assertEquals("Root cause message", response.getBody().getMessage());
         assertEquals("/json", response.getBody().getPath());
     }
+
 }

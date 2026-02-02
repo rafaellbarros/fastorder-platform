@@ -32,14 +32,15 @@ public class ApiError {
     @Schema(description = "Error message", example = "Validation failed")
     private String message;
 
+    @Schema(description = "Error message developer details", example = "Field 'email' must not be null")
+    private String messageDeveloper;
+
     @Schema(description = "API path where the error occurred", example = "/api/v1/users")
     private String path;
 
     @Schema(description = "Detailed validation errors")
     private List<ValidationError> validationErrors;
 
-    @Schema(description = "Debug information (only in development)")
-    private String debugMessage;
 
     @Data
     @Builder
