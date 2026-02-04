@@ -39,7 +39,7 @@ class OrderAggregateTest {
         OrderAggregate aggregate = new OrderAggregate();
 
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(IllegalArgumentException.class,
                 () -> aggregate.createOrder("user-123", List.of()));
     }
 
@@ -47,7 +47,7 @@ class OrderAggregateTest {
     void shouldClearEventsAfterProcessing() {
         // Given
         OrderAggregate aggregate = new OrderAggregate();
-        aggregate.createOrder("user-123", 
+        aggregate.createOrder("user-123",
                 List.of(new OrderItem("prod-1", 1, new BigDecimal("100.00"))));
 
         // When
@@ -55,6 +55,19 @@ class OrderAggregateTest {
 
         // Then
         assertTrue(aggregate.getUncommittedEvents().isEmpty());
+    }
+
+    @Test
+    @DisplayName("shouldRejectOrderWithNullItems - Items null")
+    void shouldRejectOrderWithNullItems() {
+        // Given
+        OrderAggregate aggregate = new OrderAggregate();
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> aggregate.createOrder("user-123", null));
+
+        assertEquals("Order must contain at least one item", exception.getMessage());
     }
 
     @Test

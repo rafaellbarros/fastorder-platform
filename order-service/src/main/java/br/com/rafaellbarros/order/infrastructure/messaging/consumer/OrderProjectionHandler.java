@@ -35,7 +35,7 @@ public class OrderProjectionHandler {
         }
     }
 
-    private Mono<Void> apply(OrderCreatedEvent e) {
+    public Mono<Void> apply(OrderCreatedEvent e) {
         OrderView view = OrderView.builder()
                 .orderId(e.getAggregateId())
                 .userId(e.getUserId())
@@ -53,7 +53,7 @@ public class OrderProjectionHandler {
                 .then();
     }
 
-    private Mono<Void> markPaid(OrderPaidEvent e) {
+    public Mono<Void> markPaid(OrderPaidEvent e) {
         return repository.findById(e.getAggregateId())
                 .flatMap(v -> {
                     v.setStatus("PAGO");
@@ -63,7 +63,7 @@ public class OrderProjectionHandler {
                 .then();
     }
 
-    private Mono<Void> markCancelled(OrderCancelledEvent e) {
+    public Mono<Void> markCancelled(OrderCancelledEvent e) {
         return repository.findById(e.getAggregateId())
                 .flatMap(v -> {
                     v.setStatus("CANCELADO");

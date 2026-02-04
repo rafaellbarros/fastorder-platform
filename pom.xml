@@ -188,6 +188,7 @@
 								<!-- DTOs / MODELOS DE TRANSPORTE -->
 								<exclude>**/dto/**</exclude>
 								<exclude>**/event/**</exclude>
+								<exclude>**/valueobject/**</exclude>
 								<exclude>**/ErrorResponse*</exclude>
 
 								<!-- PERSISTÊNCIA (infra técnica) -->

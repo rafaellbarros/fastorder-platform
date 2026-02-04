@@ -15,7 +15,4 @@ public class OrderItem {
     private Integer quantity;
     private BigDecimal price;
 
-    public BigDecimal getSubtotal() {
-        return price.multiply(BigDecimal.valueOf(quantity));
-    }
 }

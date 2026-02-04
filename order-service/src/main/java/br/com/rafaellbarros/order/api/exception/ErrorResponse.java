@@ -1,13 +1,13 @@
 package br.com.rafaellbarros.order.api.exception;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.List;
 
-@Data
+@Getter
 @Builder
+@AllArgsConstructor
 public class ErrorResponse {
 
     private Instant timestamp;
