@@ -189,6 +189,7 @@
 
 								<!-- DTOs / MODELOS DE TRANSPORTE -->
 								<exclude>**/dto/**</exclude>
+								<exclude>**/model/**</exclude>
 								<exclude>**/event/**</exclude>
 								<exclude>**/valueobject/**</exclude>
 								<exclude>**/ErrorResponse*</exclude>
