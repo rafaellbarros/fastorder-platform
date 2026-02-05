@@ -181,9 +181,11 @@
 								<!-- Aplicação principal e runners -->
 								<exclude>**/*Application*</exclude>
 
-								<!-- CONFIGURAÇÃO / INFRA E WIRING -->
+								<!-- CONFIGURAÇÃO / INFRA, SECURITY E WIRING -->
 								<exclude>**/config/**</exclude>
 								<exclude>**/infrastructure/config/**</exclude>
+								<exclude>**/filter/**</exclude>
+								<exclude>**/security/**</exclude>
 
 								<!-- DTOs / MODELOS DE TRANSPORTE -->
 								<exclude>**/dto/**</exclude>
@@ -203,8 +205,7 @@
 								<exclude>**/generated/**</exclude>
 
 								<!-- EXCEÇÕES BASE -->
-								<exclude>**/exception/DomainException*</exclude>
-								<exclude>**/exception/ConcurrencyException*</exclude>
+								<exclude>**/exception/**</exclude>
 
 								<!-- PRODUCERS EXTERNOS -->
 								<exclude>**/messaging/producer/**</exclude>
