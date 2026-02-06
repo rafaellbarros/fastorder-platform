@@ -1,0 +1,25 @@
+server:
+  port: 0
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/test
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: order-service-test-group
+
+app:
+  kafka:
+    topic-name: order-topic-test
+    partitions: 1
+    replication-factor: 1

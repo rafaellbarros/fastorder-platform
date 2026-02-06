@@ -1,6 +1,9 @@
 package br.com.rafaellbarros.order.api.exception;
 
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.Instant;
 import java.util.List;
@@ -8,6 +11,7 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 
     private Instant timestamp;
@@ -16,4 +20,7 @@ public class ErrorResponse {
     private String message;
     private String path;
     private List<String> details;
+
+    private String type;
+    private String instance;
 }

@@ -19,7 +19,7 @@ public class OrderProjectionHandler {
 
     private final OrderViewRepository repository;
 
-    @KafkaListener(topics = "order-events", groupId = "order-projection")
+    @KafkaListener(topics = "${app.kafka.topic-name}", groupId = "${spring.kafka.consumer.group-id}")
     public void handle(DomainEvent event) {
 
         if (event instanceof OrderCreatedEvent e) {

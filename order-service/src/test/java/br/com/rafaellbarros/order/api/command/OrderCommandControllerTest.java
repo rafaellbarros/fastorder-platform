@@ -14,6 +14,8 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -45,9 +47,13 @@ class OrderCommandControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().isOk()
-                .expectBody(String.class)
-                .isEqualTo(expectedOrderId);
+                .expectStatus().isCreated()
+                .expectBody(OrderCommandController.CreateOrderResponse.class)
+                .value(response -> {
+                    assertEquals(expectedOrderId, response.getOrderId());
+                    assertEquals("CREATED", response.getStatus());
+                    assertNotNull(response.getCreatedAt());
+                });
     }
 
     @Test
